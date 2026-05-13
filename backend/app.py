@@ -52,7 +52,7 @@ def products():
 # -------------------------
 @app.route("/search")
 def search():
-    q = request.args.get("q", "").lower()
+    q = request.args.get("q", "")
 
     conn = get_connection()
     cur = conn.cursor()
@@ -62,7 +62,7 @@ def search():
         FROM products
         WHERE LOWER(name) LIKE %s
         ORDER BY id
-    """, (f"%{q}%",))
+    """, (f"%{q.lower()}%",))
 
     rows = cur.fetchall()
 
@@ -79,9 +79,8 @@ def search():
 
 
 # -------------------------
-# PLACEHOLDER ROUTES (so frontend won't crash)
+# PLACEHOLDERS
 # -------------------------
-
 @app.route("/update-product", methods=["POST"])
 def update_product():
     return jsonify({"message": "Update API not implemented yet"})
@@ -116,7 +115,7 @@ def process_command():
 
 
 # -------------------------
-# RUN
+# RUN (LOCAL ONLY)
 # -------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
