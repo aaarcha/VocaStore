@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from db import get_connection
 
@@ -37,8 +37,9 @@ def get_products():
             } for r in rows
         ]
     }
-    
-@app.route("/search")
+
+
+@app.route("/search", methods=["GET"])
 def search_products():
     query = request.args.get("q", "").lower()
 
@@ -67,3 +68,7 @@ def search_products():
             } for r in rows
         ]
     }
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(__import__("os").getenv("PORT", 5000)))
