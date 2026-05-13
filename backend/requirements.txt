@@ -2,3 +2,6 @@ flask
 flask-cors
 psycopg2-binary
 gunicorn
+sentence-transformers
+torch
+numpy
