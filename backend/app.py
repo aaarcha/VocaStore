@@ -4,31 +4,27 @@ from db import get_connection
 import os
 
 # -------------------------
-# FORCE ABSOLUTE FRONTEND PATH (RAILWAY SAFE)
+# ABSOLUTE FRONTEND PATH (RAILWAY SAFE)
 # -------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+FRONTEND_DIR = os.path.join(BASE_DIR, "../frontend")
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 CORS(app)
 
 
 # -------------------------
-# HOME (FRONTEND)
+# SERVE FRONTEND (INDEX)
 # -------------------------
 @app.route("/")
 def serve_frontend():
-    return send_from_directory(app.static_folder, "index.html")
+    return app.send_static_file("index.html")
 
 
+# serve CSS / JS / assets
 @app.route("/<path:path>")
 def serve_static(path):
-    file_path = os.path.join(app.static_folder, path)
-
-    if os.path.exists(file_path):
-        return send_from_directory(app.static_folder, path)
-
-    return "Not Found", 404
+    return app.send_static_file(path)
 
 
 # -------------------------
@@ -97,7 +93,7 @@ def search_products():
 
 
 # -------------------------
-# RUN
+# RUN (RAILWAY)
 # -------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
