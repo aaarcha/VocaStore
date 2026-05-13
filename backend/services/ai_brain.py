@@ -1,6 +1,5 @@
 import re
-from backend.services.text_normalizer import normalize_numbers
-
+from services.text_normalizer import normalize_numbers
 
 # -----------------------------
 # INTENT DETECTION (SMART v7)

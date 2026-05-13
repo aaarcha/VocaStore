@@ -1,6 +1,6 @@
 # SAFE MODE: embeddings disabled (prevents import error)
 
-from backend.db import get_connection
+from db import get_connection
 
 
 def run_backfill():

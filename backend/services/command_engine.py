@@ -1,4 +1,4 @@
-from backend.services.ai_brain import parse_command
+from services.ai_brain import parse_command
 
 
 def handle_command(command: str, get_connection):
