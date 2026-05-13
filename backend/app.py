@@ -4,24 +4,28 @@ from db import get_connection
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+
+# 🔥 IMPORTANT: adjust this depending on structure
+FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 CORS(app)
 
-# -------------------------
-# FRONTEND
-# -------------------------
+
 @app.route("/")
 def serve_frontend():
     return send_from_directory(app.static_folder, "index.html")
 
+
 @app.route("/<path:path>")
 def serve_static(path):
     file_path = os.path.join(app.static_folder, path)
+
     if os.path.exists(file_path):
         return send_from_directory(app.static_folder, path)
-    return "Not Found", 404
+
+    # fallback (IMPORTANT for frontend routing)
+    return send_from_directory(app.static_folder, "index.html")
 
 
 # -------------------------
