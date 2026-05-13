@@ -8,7 +8,7 @@ import os
 # -------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(BASE_DIR)   # 👈 IMPORTANT FIX
-FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "C:\\Users\\Admin\\Downloads\\VocaStore\\frontend")
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "../frontend")
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 CORS(app)
