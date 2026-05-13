@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from backend.db import get_connection
-from backend.services.ai_brain import parse_command
-from backend.services.embedding_service import create_embedding
+from db import get_connection
+from services.ai_brain import parse_command
+from services.embedding_service import create_embedding
 
 app = Flask(__name__)
 CORS(app)
