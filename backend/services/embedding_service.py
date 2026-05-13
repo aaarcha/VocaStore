@@ -1,2 +1,12 @@
+from sentence_transformers import SentenceTransformer
+
+# load AI model once
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+
+# create vector embedding
 def create_embedding(text):
-    return [0.0] * 384
+
+    embedding = model.encode(text)
+
+    return embedding.tolist()
