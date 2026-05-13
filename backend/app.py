@@ -1,16 +1,28 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from db import get_connection
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend")
 CORS(app)
 
 
+# -------------------------
+# FRONTEND (MAIN PAGE)
+# -------------------------
 @app.route("/")
 def home():
-    return "VocaStore Railway Working"
+    return send_from_directory(app.static_folder, "index.html")
 
 
+@app.route("/<path:path>")
+def static_files(path):
+    return send_from_directory(app.static_folder, path)
+
+
+# -------------------------
+# PRODUCTS
+# -------------------------
 @app.route("/products", methods=["GET"])
 def get_products():
     conn = get_connection()
@@ -39,6 +51,9 @@ def get_products():
     }
 
 
+# -------------------------
+# SEARCH
+# -------------------------
 @app.route("/search", methods=["GET"])
 def search_products():
     query = request.args.get("q", "").lower()
@@ -70,5 +85,9 @@ def search_products():
     }
 
 
+# -------------------------
+# START APP (RAILWAY SAFE)
+# -------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(__import__("os").getenv("PORT", 5000)))
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
