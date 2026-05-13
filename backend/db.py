@@ -7,6 +7,6 @@ def get_connection():
         database=os.getenv("railway"),
         user=os.getenv("postgres"),
         password=os.getenv("ykuiSgkzVVPlSddFKWgBBLMhimNtnwYQ"),
-        port=os.getenv("5432")
+        port=os.getenv("5432", 5432)
     )
     
