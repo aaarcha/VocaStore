@@ -5,7 +5,7 @@ import os
 
 # IMPORTANT: Railway runs from /app so we must adjust paths safely
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, "../frontend")
+FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend")
 
 app = Flask(
     __name__,
