@@ -3,8 +3,20 @@ from flask_cors import CORS
 from db import get_connection
 import os
 
-app = Flask(__name__, static_folder="../frontend", static_url_path="")
+# -------------------------
+# FIX: correct frontend path for Railway
+# -------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "../frontend")
+
+app = Flask(
+    __name__,
+    static_folder=FRONTEND_DIR,
+    static_url_path=""
+)
+
 CORS(app)
+
 
 # -------------------------
 # FRONTEND ROUTE
@@ -16,11 +28,16 @@ def serve_frontend():
 
 @app.route("/<path:path>")
 def serve_static(path):
-    return send_from_directory(app.static_folder, path)
+    file_path = os.path.join(app.static_folder, path)
+
+    if os.path.exists(file_path):
+        return send_from_directory(app.static_folder, path)
+
+    return "Not Found", 404
 
 
 # -------------------------
-# API ROUTES
+# PRODUCTS
 # -------------------------
 @app.route("/products", methods=["GET"])
 def get_products():
@@ -50,6 +67,9 @@ def get_products():
     }
 
 
+# -------------------------
+# SEARCH
+# -------------------------
 @app.route("/search", methods=["GET"])
 def search_products():
     query = request.args.get("q", "").lower()
