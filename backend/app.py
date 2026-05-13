@@ -3,22 +3,15 @@ from flask_cors import CORS
 from db import get_connection
 import os
 
-# -------------------------
-# RAILWAY SAFE FRONTEND PATH (FINAL FIX)
-# -------------------------
 BASE_DIR = os.getcwd()
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 CORS(app)
 
-# -------------------------
-# FRONTEND ROUTES
-# -------------------------
 @app.route("/")
 def serve_frontend():
     return send_from_directory(app.static_folder, "index.html")
-
 
 @app.route("/<path:path>")
 def serve_static(path):
@@ -29,10 +22,6 @@ def serve_static(path):
 
     return "Not Found", 404
 
-
-# -------------------------
-# PRODUCTS
-# -------------------------
 @app.route("/products")
 def products():
     conn = get_connection()
@@ -52,10 +41,6 @@ def products():
         ]
     })
 
-
-# -------------------------
-# SEARCH
-# -------------------------
 @app.route("/search")
 def search():
     q = request.args.get("q", "").lower()
@@ -83,10 +68,6 @@ def search():
         ]
     })
 
-
-# -------------------------
-# RUN (RAILWAY)
-# -------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
