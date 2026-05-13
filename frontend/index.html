@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VocaStore Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2>🛒 VocaStore</h2>
+
+        <button onclick="showPage('dashboard')">🏠 Dashboard</button>
+        <button onclick="showPage('inventory')">📦 Inventory</button>
+        <button onclick="showPage('sales')">💰 Sales</button>
+        <button onclick="showPage('summary')">📊 Summary</button>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="page active">
+            <h1>Dashboard</h1>
+
+            <input id="command" placeholder="Speak or type command">
+
+            <button onclick="sendCommand()">Send</button>
+            <button onclick="startVoice()">🎤 Speak</button>
+
+            <p id="response"></p>
+        </div>
+
+        <!-- INVENTORY -->
+        <div id="inventory" class="page">
+
+            <h1>Inventory</h1>
+
+            <input id="search" onkeyup="filterProducts()" placeholder="Search product...">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="productTable"></tbody>
+            </table>
+
+        </div>
+
+        <!-- SALES -->
+        <div id="sales" class="page">
+            <h1>Sales</h1>
+            <div id="salesList"></div>
+        </div>
+
+        <!-- SUMMARY -->
+        <div id="summary" class="page">
+            <h1>Summary</h1>
+            <div id="summaryBox"></div>
+        </div>
+
+    </div>
+</div>
+
+<!-- EDIT SIDE PANEL -->
+<div id="editPanel" class="edit-panel">
+    <input type="hidden" id="editId">
+
+    <input id="editName" placeholder="Name">
+    <input id="editPrice" placeholder="Price">
+    <input id="editStock" placeholder="Stock">
+
+    <button onclick="saveEdit()">Save</button>
+    <button onclick="closeEdit()">Close</button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
