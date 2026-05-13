@@ -3,24 +3,21 @@ from flask_cors import CORS
 from db import get_connection
 import os
 
-# IMPORTANT: Railway runs from /app so we must adjust paths safely
+# -------------------------
+# FIXED FRONTEND PATH (RAILWAY SAFE)
+# -------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend")
+PROJECT_ROOT = os.path.dirname(BASE_DIR)   # 👈 IMPORTANT FIX
+FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend")
 
-app = Flask(
-    __name__,
-    static_folder=FRONTEND_DIR,
-    static_url_path=""
-)
-
+app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 CORS(app)
 
 # -------------------------
-# FRONTEND ROUTE
+# FRONTEND ROUTES
 # -------------------------
 @app.route("/")
 def serve_frontend():
-    index_path = os.path.join(app.static_folder, "index.html")
     return send_from_directory(app.static_folder, "index.html")
 
 
@@ -35,7 +32,7 @@ def serve_static(path):
 
 
 # -------------------------
-# API: PRODUCTS
+# PRODUCTS
 # -------------------------
 @app.route("/products")
 def products():
@@ -58,7 +55,7 @@ def products():
 
 
 # -------------------------
-# API: SEARCH
+# SEARCH
 # -------------------------
 @app.route("/search")
 def search():
@@ -89,7 +86,7 @@ def search():
 
 
 # -------------------------
-# RUN (Railway safe)
+# RUN
 # -------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
