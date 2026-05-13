@@ -2,8 +2,17 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 from db import get_connection
-from services.ai_brain import parse_command
-from services.embedding_service import create_embedding
+# from services.ai_brain import parse_command
+# from services.embedding_service import create_embedding
+def parse_command(command):
+    return {
+        "intent": "UNKNOWN",
+        "product": None,
+        "quantity": 1
+    }
+
+def create_embedding(text):
+    return [0.0] * 384
 
 app = Flask(__name__)
 CORS(app)
@@ -157,26 +166,10 @@ def delete_product():
 # Voice command system
 @app.route("/process-command", methods=["POST"])
 def process():
-
-    data = request.json or {}
-    command = data.get("command", "").strip().lower()
-
-    parsed = parse_command(command)
-
-    intent = parsed["intent"]
-    product = parsed["product"]
-    quantity = parsed["quantity"] or 1
-
-    if not product:
-        return jsonify({
-            "success": False,
-            "message": "Unknown product"
-        })
-
-    product = product.lower().strip()
-
-    conn = get_connection()
-    cur = conn.cursor()
+    return jsonify({
+        "success": True,
+        "message": "AI temporarily disabled"
+    })
 
     # SALE
     if intent == "SALE":
