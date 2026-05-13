@@ -3,25 +3,24 @@ from flask_cors import CORS
 from db import get_connection
 import os
 
-app = Flask(__name__, static_folder="../frontend")
+app = Flask(__name__, static_folder="../frontend", static_url_path="")
 CORS(app)
 
-
 # -------------------------
-# FRONTEND (MAIN PAGE)
+# FRONTEND ROUTE
 # -------------------------
 @app.route("/")
-def home():
+def serve_frontend():
     return send_from_directory(app.static_folder, "index.html")
 
 
 @app.route("/<path:path>")
-def static_files(path):
+def serve_static(path):
     return send_from_directory(app.static_folder, path)
 
 
 # -------------------------
-# PRODUCTS
+# API ROUTES
 # -------------------------
 @app.route("/products", methods=["GET"])
 def get_products():
@@ -51,9 +50,6 @@ def get_products():
     }
 
 
-# -------------------------
-# SEARCH
-# -------------------------
 @app.route("/search", methods=["GET"])
 def search_products():
     query = request.args.get("q", "").lower()
@@ -86,7 +82,7 @@ def search_products():
 
 
 # -------------------------
-# START APP (RAILWAY SAFE)
+# RUN (Railway compatible)
 # -------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
