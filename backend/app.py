@@ -3,17 +3,24 @@ from flask_cors import CORS
 from db import get_connection
 import os
 
+# IMPORTANT: Railway runs from /app so we must adjust paths safely
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "../frontend")
 
-# 🔥 IMPORTANT: adjust this depending on structure
-FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
+app = Flask(
+    __name__,
+    static_folder=FRONTEND_DIR,
+    static_url_path=""
+)
 
-app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 CORS(app)
 
-
+# -------------------------
+# FRONTEND ROUTE
+# -------------------------
 @app.route("/")
 def serve_frontend():
+    index_path = os.path.join(app.static_folder, "index.html")
     return send_from_directory(app.static_folder, "index.html")
 
 
@@ -24,12 +31,11 @@ def serve_static(path):
     if os.path.exists(file_path):
         return send_from_directory(app.static_folder, path)
 
-    # fallback (IMPORTANT for frontend routing)
-    return send_from_directory(app.static_folder, "index.html")
+    return "Not Found", 404
 
 
 # -------------------------
-# PRODUCTS
+# API: PRODUCTS
 # -------------------------
 @app.route("/products")
 def products():
@@ -52,11 +58,11 @@ def products():
 
 
 # -------------------------
-# SEARCH
+# API: SEARCH
 # -------------------------
 @app.route("/search")
 def search():
-    q = request.args.get("q", "")
+    q = request.args.get("q", "").lower()
 
     conn = get_connection()
     cur = conn.cursor()
@@ -66,7 +72,7 @@ def search():
         FROM products
         WHERE LOWER(name) LIKE %s
         ORDER BY id
-    """, (f"%{q.lower()}%",))
+    """, (f"%{q}%",))
 
     rows = cur.fetchall()
 
@@ -83,43 +89,7 @@ def search():
 
 
 # -------------------------
-# PLACEHOLDERS
-# -------------------------
-@app.route("/update-product", methods=["POST"])
-def update_product():
-    return jsonify({"message": "Update API not implemented yet"})
-
-
-@app.route("/delete-product", methods=["POST"])
-def delete_product():
-    return jsonify({"message": "Delete API not implemented yet"})
-
-
-@app.route("/sales")
-def sales():
-    return jsonify({"data": []})
-
-
-@app.route("/summary")
-def summary():
-    return jsonify({
-        "data": {
-            "total_sales": 0,
-            "transactions": 0,
-            "top_product": "None",
-            "low_stock": []
-        }
-    })
-
-
-@app.route("/process-command", methods=["POST"])
-def process_command():
-    data = request.get_json()
-    return jsonify({"message": f"Command received: {data.get('command', '')}"})
-
-
-# -------------------------
-# RUN (LOCAL ONLY)
+# RUN (Railway safe)
 # -------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
