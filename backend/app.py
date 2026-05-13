@@ -4,11 +4,10 @@ from db import get_connection
 import os
 
 # -------------------------
-# FIXED FRONTEND PATH (RAILWAY SAFE)
+# RAILWAY SAFE FRONTEND PATH (FINAL FIX)
 # -------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(BASE_DIR)   # 👈 IMPORTANT FIX
-FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "../frontend")
+BASE_DIR = os.getcwd()
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 CORS(app)
@@ -86,7 +85,7 @@ def search():
 
 
 # -------------------------
-# RUN
+# RUN (RAILWAY)
 # -------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
