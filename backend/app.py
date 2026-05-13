@@ -4,17 +4,12 @@ from db import get_connection
 import os
 
 # -------------------------
-# FIX: correct frontend path for Railway
+# FRONTEND PATH FIX (RAILWAY SAFE)
 # -------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, "../frontend")
+FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend"))
 
-app = Flask(
-    __name__,
-    static_folder=FRONTEND_DIR,
-    static_url_path=""
-)
-
+app = Flask(__name__, static_folder=FRONTEND_DIR)
 CORS(app)
 
 
@@ -37,7 +32,7 @@ def serve_static(path):
 
 
 # -------------------------
-# PRODUCTS
+# PRODUCTS API
 # -------------------------
 @app.route("/products", methods=["GET"])
 def get_products():
@@ -68,7 +63,7 @@ def get_products():
 
 
 # -------------------------
-# SEARCH
+# SEARCH API
 # -------------------------
 @app.route("/search", methods=["GET"])
 def search_products():
@@ -102,7 +97,7 @@ def search_products():
 
 
 # -------------------------
-# RUN (Railway compatible)
+# RUN SERVER (RAILWAY)
 # -------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
