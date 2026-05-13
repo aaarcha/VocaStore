@@ -11,9 +11,8 @@ def home():
     return "VocaStore Railway Working"
 
 
-@app.route("/products")
-def products():
-
+@app.route("/products", methods=["GET"])
+def get_products():
     conn = get_connection()
     cur = conn.cursor()
 
@@ -24,11 +23,10 @@ def products():
     """)
 
     rows = cur.fetchall()
-
     cur.close()
     conn.close()
 
-    return jsonify({
+    return {
         "success": True,
         "data": [
             {
@@ -36,7 +34,36 @@ def products():
                 "name": r[1],
                 "price": float(r[2]),
                 "stock": r[3]
-            }
-            for r in rows
+            } for r in rows
         ]
-    })
+    }
+    
+@app.route("/search")
+def search_products():
+    query = request.args.get("q", "").lower()
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, name, price, stock
+        FROM products
+        WHERE LOWER(name) LIKE %s
+        ORDER BY id
+    """, (f"%{query}%",))
+
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return {
+        "success": True,
+        "data": [
+            {
+                "id": r[0],
+                "name": r[1],
+                "price": float(r[2]),
+                "stock": r[3]
+            } for r in rows
+        ]
+    }
