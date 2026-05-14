@@ -1,10 +1,11 @@
 from backend.services.ai_brain import parse_command
 from backend.services.sales_service import handle_sale
 from backend.services.inventory_service import handle_restock
-from backend.services.vector_store import save_command_embedding
+from backend.services.vector_store import save_command
+
 
 def handle_command(command: str, get_connection):
-    save_command_embedding(get_connection, command)
+
     parsed = parse_command(command)
 
     intent = parsed.get("intent")
@@ -12,15 +13,21 @@ def handle_command(command: str, get_connection):
     quantity = parsed.get("quantity") or 1
 
     if not product:
-        return {"message": "Hindi ko maintindihan ang product", "type": "error"}
+        return {
+            "message": "Hindi ko maintindihan ang product",
+            "type": "error"
+        }
+
+    result = None
 
     if intent == "SALE":
-        return handle_sale(get_connection, parsed)
+        result = handle_sale(get_connection, parsed)
 
-    if intent == "RESTOCK":
-        return handle_restock(get_connection, parsed)
+    elif intent == "RESTOCK":
+        result = handle_restock(get_connection, parsed)
 
-    if intent == "CHECK":
+    elif intent == "CHECK":
+
         conn = get_connection()
         cur = conn.cursor()
 
@@ -29,15 +36,24 @@ def handle_command(command: str, get_connection):
             WHERE LOWER(name)=LOWER(%s)
         """, (product.lower(),))
 
-        result = cur.fetchone()
+        row = cur.fetchone()
         conn.close()
 
-        if not result:
+        if not row:
             return {"message": "Product not found", "type": "error"}
 
-        return {
-            "message": f"{product} has {result[0]} stock",
+        result = {
+            "message": f"{product} has {row[0]} stock",
             "type": "success"
         }
 
-    return {"message": "Command not recognized", "type": "error"}
+    else:
+        return {"message": "Command not recognized", "type": "error"}
+
+    # -----------------------------
+    # SAVE TO PGVECTOR MEMORY ONLY AFTER SUCCESS
+    # -----------------------------
+    if result and result.get("type") == "success":
+        save_command(get_connection, command, intent, product)
+
+    return result
