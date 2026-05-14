@@ -1,41 +1,49 @@
 def handle_sale(db, parsed):
+
     conn = db()
     cur = conn.cursor()
+
+    quantity = parsed["quantity"]
+    product = parsed["product"]
 
     cur.execute("""
         SELECT stock, price
         FROM products
         WHERE LOWER(name)=LOWER(%s)
-    """, (parsed["product"],))
+    """, (product,))
 
-    product = cur.fetchone()
+    item = cur.fetchone()
 
-    if not product:
-        return {"error": "Product not found"}
+    if not item:
+        conn.close()
+        return {"message": "Product not found"}
 
-    stock, price = product
+    stock, price = item
 
-    if stock < parsed["quantity"]:
-        return {"error": "Not enough stock"}
+    if stock < quantity:
+        conn.close()
+        return {"message": "Not enough stock"}
 
-    new_stock = stock - parsed["quantity"]
-    total = parsed["quantity"] * price
+    new_stock = stock - quantity
+    total = quantity * float(price)
 
     cur.execute("""
         UPDATE products
         SET stock=%s
         WHERE LOWER(name)=LOWER(%s)
-    """, (new_stock, parsed["product"]))
+    """, (new_stock, product))
 
     cur.execute("""
-        INSERT INTO sales_transactions (product_name, quantity, total_price)
+        INSERT INTO sales_transactions
+        (product_name, quantity, total_price)
         VALUES (%s, %s, %s)
-    """, (parsed["product"], parsed["quantity"], total))
+    """, (product, quantity, total))
 
     conn.commit()
+
+    cur.close()
     conn.close()
 
     return {
-        "message": f"Sold {parsed['quantity']} {parsed['product']}",
-        "remaining_stock": new_stock
+        "message": f"Sold {quantity} {product}"
     }

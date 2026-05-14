@@ -128,7 +128,7 @@ def sales():
                 "product": r[0],
                 "quantity": r[1],
                 "total": float(r[2]),
-                "date": r[3].strftime("%Y-%m-%d %H:%M:%S") if r[3] else ""
+                "date": str(r[3])
             }
             for r in rows
         ]
