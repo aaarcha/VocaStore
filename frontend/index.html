@@ -89,12 +89,9 @@
 
 <!-- ✅ POPUP MODAL -->
 <div id="popupOverlay" class="popup-overlay hidden" onclick="closePopup(event)">
-    <div class="popup" onclick="event.stopPropagation()">
-
-        <button class="close-btn" onclick="closePopup()">&times;</button>
-
+    <div id="popup" class="popup hidden">
+        <button class="close-btn" onclick="closePopup()">✖</button>
         <div id="popupContent"></div>
-
     </div>
 </div>
 

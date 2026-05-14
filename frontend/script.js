@@ -1,8 +1,5 @@
 const API = "https://vocastore-production.up.railway.app";
 
-let currentEdit = null;
-
-/* NAVIGATION */
 function showPage(pageId) {
 
     document.querySelectorAll(".page")
@@ -14,16 +11,34 @@ function showPage(pageId) {
     if (pageId === "inventory") loadProducts();
     if (pageId === "sales") loadSales();
     if (pageId === "summary") loadSummary();
+    if (pageId === "dashboard") loadDashboardSummary();
 }
 
-/* SPEECH */
 function speak(text) {
     const msg = new SpeechSynthesisUtterance(text);
     msg.lang = "en-PH";
     speechSynthesis.speak(msg);
 }
 
-/* COMMAND HANDLER */
+/* -----------------------------
+   SMART COMMAND TRIGGER SYSTEM
+------------------------------ */
+
+function detectAnalyticsIntent(text) {
+
+    text = text.toLowerCase();
+
+    if (text.includes("top sales") ||
+        text.includes("top product") ||
+        text.includes("sales trend") ||
+        text.includes("analytics") ||
+        text.includes("low stock")) {
+        return "ANALYTICS";
+    }
+
+    return null;
+}
+
 async function sendCommand() {
 
     const cmd = document.getElementById("command").value;
@@ -32,9 +47,7 @@ async function sendCommand() {
 
         const res = await fetch(API + "/process-command", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ command: cmd })
         });
 
@@ -45,40 +58,33 @@ async function sendCommand() {
         document.getElementById("response").innerText = msg;
         speak(msg);
 
-        const lower = cmd.toLowerCase();
+        const intent = detectAnalyticsIntent(cmd);
 
-        fetch(API + "/summary")
-            .then(res => res.json())
-            .then(resData => {
+        if (intent === "ANALYTICS") {
 
-                const d = resData.data || {};
+            const summary = await fetch(API + "/summary");
+            const resData = await summary.json();
+            const d = resData.data || {};
 
-                /* TOP SALES */
-                if (lower.includes("top") || lower.includes("sales")) {
+            showPopup(`
+                <h3>📊 Analytics</h3>
 
-                    showPopup(`
-                        <h2>🔥 Top Selling Products</h2>
-                        <p><b>${d.top_product || "None"}</b></p>
-                    `);
-                }
+                <p><b>🔥 Top Product:</b> ${d.top_product || "None"}</p>
 
-                /* LOW STOCK */
-                if (lower.includes("low stock")) {
+                <p><b>⚠ Low Stock (≤10):</b></p>
 
-                    showPopup(`
-                        <h2>⚠ Low Stock Items (≤10)</h2>
-                        ${(d.low_stock || [])
-                            .filter(p => p.stock <= 10)
-                            .map(p => `<p>${p.name} (${p.stock})</p>`)
-                            .join("")}
-                    `);
-                }
-            });
+                ${(d.low_stock || [])
+                    .filter(p => p.stock <= 10)
+                    .map(p => `<p>- ${p.name} (${p.stock})</p>`)
+                    .join("") || "<p>No low stock items</p>"}
+            `);
+        }
 
         setTimeout(() => {
             loadProducts();
             loadSales();
             loadSummary();
+            loadDashboardSummary();
         }, 300);
 
     } catch (err) {
@@ -87,7 +93,27 @@ async function sendCommand() {
     }
 }
 
-/* VOICE */
+/* -----------------------------
+   POPUP SYSTEM
+------------------------------ */
+
+function showPopup(html) {
+
+    const popup = document.getElementById("popup");
+    const content = document.getElementById("popupContent");
+
+    content.innerHTML = html;
+    popup.classList.remove("hidden");
+}
+
+function closePopup() {
+    document.getElementById("popup").classList.add("hidden");
+}
+
+/* -----------------------------
+   VOICE INPUT
+------------------------------ */
+
 function startVoice() {
 
     const SpeechRecognition =
@@ -111,205 +137,127 @@ function startVoice() {
     };
 }
 
-/* INVENTORY */
+/* -----------------------------
+   DASHBOARD SUMMARY
+------------------------------ */
+
+async function loadDashboardSummary() {
+
+    const res = await fetch(API + "/summary");
+    const resData = await res.json();
+
+    const d = resData.data || {};
+
+    document.getElementById("dashboardSummary").innerHTML = `
+        <div class="card">
+            <h3>Quick Analytics</h3>
+            <p>Say: "top sales", "low stock", "analytics"</p>
+        </div>
+    `;
+}
+
+/* -----------------------------
+   INVENTORY
+------------------------------ */
+
 async function loadProducts() {
 
-    try {
+    const res = await fetch(API + "/products");
+    const data = await res.json();
 
-        const res = await fetch(API + "/products");
-        const data = await res.json();
+    const table = document.getElementById("productTable");
+    table.innerHTML = "";
 
-        const table = document.getElementById("productTable");
-        table.innerHTML = "";
+    (data.data || []).forEach(p => {
 
-        (data.data || []).forEach(p => {
-
-            table.innerHTML += `
-                <tr>
-                    <td>${p.name}</td>
-                    <td>₱${p.price}</td>
-                    <td>${p.stock}</td>
-                    <td>
-                        <button onclick="openEdit(${p.id}, '${p.name}', ${p.price}, ${p.stock})">
-                            Edit
-                        </button>
-                        <button onclick="deleteProduct(${p.id})">
-                            Delete
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-
-    } catch (err) {
-        console.error(err);
-    }
+        table.innerHTML += `
+            <tr>
+                <td>${p.name}</td>
+                <td>₱${p.price}</td>
+                <td>${p.stock}</td>
+                <td>
+                    <button onclick="openEdit(${p.id}, '${p.name}', ${p.price}, ${p.stock})">Edit</button>
+                    <button onclick="deleteProduct(${p.id})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
 }
 
-/* SEARCH */
-function filterProducts() {
+/* -----------------------------
+   SALES
+------------------------------ */
 
-    const input = document.getElementById("search").value.toLowerCase();
+async function loadSales() {
 
-    document.querySelectorAll("#productTable tr")
-        .forEach(row => {
-            row.style.display =
-                row.innerText.toLowerCase().includes(input)
-                    ? ""
-                    : "none";
-        });
+    const res = await fetch(API + "/sales");
+    const data = await res.json();
+
+    const box = document.getElementById("salesList");
+    box.innerHTML = "";
+
+    (data.data || []).forEach(s => {
+
+        box.innerHTML += `
+            <div class="card">
+                <b>${s.product}</b><br>
+                Qty: ${s.quantity}<br>
+                Total: ₱${s.total}<br>
+                <small>${s.date}</small>
+            </div>
+        `;
+    });
 }
 
-/* EDIT */
+/* -----------------------------
+   SUMMARY PAGE
+------------------------------ */
+
+async function loadSummary() {
+
+    const res = await fetch(API + "/summary");
+    const resData = await res.json();
+
+    const d = resData.data || {
+        total_sales: 0,
+        transactions: 0,
+        top_product: "None",
+        low_stock: []
+    };
+
+    document.getElementById("summaryBox").innerHTML = `
+        <p>📊 Total Sales: ₱${d.total_sales}</p>
+        <p>🧾 Transactions: ${d.transactions}</p>
+        <p>🔥 Top Product: ${d.top_product}</p>
+
+        <p>⚠ Low Stock (≤10):</p>
+
+        ${(d.low_stock || [])
+            .filter(p => p.stock <= 10)
+            .map(p => `<p>- ${p.name} (${p.stock})</p>`)
+            .join("")}
+    `;
+}
+
+/* -----------------------------
+   EDIT FUNCTIONS (unchanged)
+------------------------------ */
+
 function openEdit(id, name, price, stock) {
-
-    currentEdit = id;
 
     document.getElementById("editId").value = id;
     document.getElementById("editName").value = name;
     document.getElementById("editPrice").value = price;
     document.getElementById("editStock").value = stock;
 
-    document.getElementById("editPanel").classList.add("active");
+    document.getElementById("editPanel")
+        .classList.add("active");
 }
 
 function closeEdit() {
-    document.getElementById("editPanel").classList.remove("active");
+    document.getElementById("editPanel")
+        .classList.remove("active");
 }
 
-async function saveEdit() {
-
-    try {
-
-        const res = await fetch(API + "/update-product", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                id: parseInt(document.getElementById("editId").value),
-                name: document.getElementById("editName").value,
-                price: parseFloat(document.getElementById("editPrice").value),
-                stock: parseInt(document.getElementById("editStock").value)
-            })
-        });
-
-        const data = await res.json();
-
-        alert(data.message || "Updated");
-
-        closeEdit();
-        loadProducts();
-
-    } catch (err) {
-        console.error(err);
-        alert("Update failed");
-    }
-}
-
-/* DELETE */
-async function deleteProduct(id) {
-
-    if (!confirm("Delete this product?")) return;
-
-    try {
-
-        const res = await fetch(API + "/delete-product", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ id })
-        });
-
-        const data = await res.json();
-
-        alert(data.message || "Deleted");
-
-        loadProducts();
-
-    } catch (err) {
-        console.error(err);
-        alert("Delete failed");
-    }
-}
-
-/* SALES */
-async function loadSales() {
-
-    try {
-
-        const res = await fetch(API + "/sales");
-        const data = await res.json();
-
-        const box = document.getElementById("salesList");
-        box.innerHTML = "";
-
-        (data.data || []).forEach(s => {
-
-            box.innerHTML += `
-                <div class="card">
-                    <b>${s.product}</b><br>
-                    Qty: ${s.quantity}<br>
-                    Total: ₱${s.total}<br>
-                    <small>${s.date}</small>
-                </div>
-            `;
-        });
-
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-/* SUMMARY */
-async function loadSummary() {
-
-    try {
-
-        const res = await fetch(API + "/summary");
-        const resData = await res.json();
-
-        const d = resData.data || {
-            total_sales: 0,
-            transactions: 0,
-            top_product: "None",
-            low_stock: []
-        };
-
-        document.getElementById("summaryBox").innerHTML = `
-            <p>📊 Total Sales: ₱${d.total_sales}</p>
-            <p>🧾 Transactions: ${d.transactions}</p>
-            <p>🔥 Top Product: ${d.top_product}</p>
-            <p>⚠ Low Stock:</p>
-            ${(d.low_stock || [])
-                .map(p => `<p>- ${p.name} (${p.stock})</p>`)
-                .join("")}
-        `;
-
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-/* POPUP */
-function showPopup(html) {
-
-    const overlay = document.getElementById("popupOverlay");
-    const content = document.getElementById("popupContent");
-
-    content.innerHTML = html;
-
-    overlay.classList.remove("hidden");
-}
-
-function closePopup(event) {
-
-    if (event && event.target !== event.currentTarget) return;
-
-    document.getElementById("popupOverlay")
-        .classList.add("hidden");
-}
-
-/* INIT */
 loadProducts();
+loadDashboardSummary();

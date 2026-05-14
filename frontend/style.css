@@ -141,3 +141,32 @@ body {
 .close-btn:hover {
     color: red;
 }
+
+.close-btn {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.popup {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 320px;
+    background: #1e1e1e;
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    z-index: 999;
+    position: fixed;
+}
+
+.popup h3 {
+    margin-top: 0;
+}
