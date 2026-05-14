@@ -2,6 +2,7 @@ import hashlib
 
 VECTOR_SIZE = 32
 
+
 def embed_text(text: str):
 
     text = text.lower().strip()
@@ -48,11 +49,11 @@ def find_similar(db, command):
         SELECT command, intent, product
         FROM command_memory
         ORDER BY embedding <-> %s
-        LIMIT 1
+        LIMIT 3
     """, (embedding,))
 
-    result = cur.fetchone()
+    results = cur.fetchall()
 
     conn.close()
 
-    return result
+    return results

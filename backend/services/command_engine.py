@@ -1,7 +1,7 @@
 from backend.services.ai_brain import parse_command
 from backend.services.sales_service import handle_sale
 from backend.services.inventory_service import handle_restock
-from backend.services.vector_store import save_command
+from backend.services.vector_store import save_command, find_similar
 
 
 def handle_command(command: str, get_connection):
@@ -12,12 +12,36 @@ def handle_command(command: str, get_connection):
     product = parsed.get("product")
     quantity = parsed.get("quantity") or 1
 
+    # -------------------------
+    # 1. SEMANTIC MEMORY SEARCH (pgvector)
+    # -------------------------
+    similar = find_similar(get_connection, command)
+
+    if similar:
+
+        best_match = similar[0]
+
+        _, mem_intent, mem_product = best_match
+
+        # fallback if parser fails
+        if not intent:
+            intent = mem_intent
+
+        if not product:
+            product = mem_product
+
+    # -------------------------
+    # 2. VALIDATION
+    # -------------------------
     if not product:
         return {
             "message": "Hindi ko maintindihan ang product",
             "type": "error"
         }
 
+    # -------------------------
+    # 3. EXECUTION
+    # -------------------------
     result = None
 
     if intent == "SALE":
@@ -50,9 +74,9 @@ def handle_command(command: str, get_connection):
     else:
         return {"message": "Command not recognized", "type": "error"}
 
-    # -----------------------------
-    # SAVE TO PGVECTOR MEMORY ONLY AFTER SUCCESS
-    # -----------------------------
+    # -------------------------
+    # 4. SAVE MEMORY (pgvector)
+    # -------------------------
     if result and result.get("type") == "success":
         save_command(get_connection, command, intent, product)
 
