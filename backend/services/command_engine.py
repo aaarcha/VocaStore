@@ -82,22 +82,36 @@ def handle_command(command: str, get_connection):
         if intent == "RESTOCK":
 
             cur.execute("""
-                UPDATE products
-                SET stock = stock + %s
-                WHERE LOWER(name) LIKE %s
-            """, (quantity, f"%{product}%"))
+                SELECT id, stock FROM products
+                WHERE LOWER(name) = LOWER(%s)
+                LIMIT 1
+            """, (product,))
+
+            existing = cur.fetchone()
+
+            if existing:
+                cur.execute("""
+                    UPDATE products
+                    SET stock = stock + %s
+                    WHERE id = %s
+                """, (quantity, existing[0]))
+
+                message = "Stock updated"
+
+            else:
+                cur.execute("""
+                    INSERT INTO products (name, price, stock)
+                    VALUES (%s, %s, %s)
+                """, (product, 0, quantity))
+
+                message = "New product created"
 
             conn.commit()
 
             return {
-                "message": f"Restocked {product} by {quantity}",
+                "message": f"{message}: {product}",
                 "type": "success"
             }
-
-        return {
-            "message": "Command not recognized",
-            "type": "error"
-        }
 
     finally:
         cur.close()

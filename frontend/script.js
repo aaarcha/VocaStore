@@ -42,16 +42,15 @@ async function sendCommand() {
 
         speak(data.message || "Done");
 
-        loadProducts();
-        loadSales();
-        loadSummary();
+        setTimeout(() => {
+            loadProducts();
+            loadSales();
+            loadSummary();
+        }, 300);
 
     } catch (err) {
-
         console.error(err);
-
-        document.getElementById("response").innerText =
-            "Server error";
+        document.getElementById("response").innerText = "Server error";
     }
 }
 
@@ -66,12 +65,11 @@ function startVoice() {
     }
 
     const recognition = new SpeechRecognition();
-
     recognition.lang = "en-PH";
+
     recognition.start();
 
     recognition.onresult = (e) => {
-
         document.getElementById("command").value =
             e.results[0][0].transcript;
 
@@ -87,7 +85,6 @@ async function loadProducts() {
         const data = await res.json();
 
         const table = document.getElementById("productTable");
-
         table.innerHTML = "";
 
         (data.data || []).forEach(p => {
@@ -101,7 +98,6 @@ async function loadProducts() {
                         <button onclick="openEdit(${p.id}, '${p.name}', ${p.price}, ${p.stock})">
                             Edit
                         </button>
-
                         <button onclick="deleteProduct(${p.id})">
                             Delete
                         </button>
@@ -111,19 +107,16 @@ async function loadProducts() {
         });
 
     } catch (err) {
-
         console.error(err);
     }
 }
 
 function filterProducts() {
 
-    const input =
-        document.getElementById("search").value.toLowerCase();
+    const input = document.getElementById("search").value.toLowerCase();
 
     document.querySelectorAll("#productTable tr")
         .forEach(row => {
-
             row.style.display =
                 row.innerText.toLowerCase().includes(input)
                     ? ""
@@ -145,7 +138,6 @@ function openEdit(id, name, price, stock) {
 }
 
 function closeEdit() {
-
     document.getElementById("editPanel")
         .classList.remove("active");
 }
@@ -172,11 +164,9 @@ async function saveEdit() {
         alert(data.message || "Updated");
 
         closeEdit();
-
         loadProducts();
 
     } catch (err) {
-
         console.error(err);
         alert("Update failed");
     }
@@ -203,7 +193,6 @@ async function deleteProduct(id) {
         loadProducts();
 
     } catch (err) {
-
         console.error(err);
         alert("Delete failed");
     }
@@ -217,7 +206,6 @@ async function loadSales() {
         const data = await res.json();
 
         const box = document.getElementById("salesList");
-
         box.innerHTML = "";
 
         (data.data || []).forEach(s => {
@@ -233,7 +221,6 @@ async function loadSales() {
         });
 
     } catch (err) {
-
         console.error(err);
     }
 }
@@ -245,20 +232,24 @@ async function loadSummary() {
         const res = await fetch(API + "/summary");
         const resData = await res.json();
 
-        const d = resData.data;
+        const d = resData.data || {
+            total_sales: 0,
+            transactions: 0,
+            top_product: "None",
+            low_stock: []
+        };
 
         document.getElementById("summaryBox").innerHTML = `
             <p>📊 Total Sales: ₱${d.total_sales}</p>
             <p>🧾 Transactions: ${d.transactions}</p>
             <p>🔥 Top Product: ${d.top_product}</p>
             <p>⚠ Low Stock:</p>
-            ${d.low_stock.map(
+            ${(d.low_stock || []).map(
                 p => `<p>- ${p.name} (${p.stock})</p>`
             ).join("")}
         `;
 
     } catch (err) {
-
         console.error(err);
     }
 }
