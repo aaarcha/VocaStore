@@ -1,15 +1,13 @@
 def get_summary(db):
-
     conn = db()
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT p.name,
-               SUM(s.quantity),
-               SUM(s.total_price)
-        FROM sales_transactions s
-        JOIN products p ON p.id = s.product_id
-        GROUP BY p.name
+        SELECT product_name,
+               SUM(quantity),
+               SUM(total_price)
+        FROM sales_transactions
+        GROUP BY product_name
     """)
 
     rows = cur.fetchall()
@@ -18,9 +16,6 @@ def get_summary(db):
     result = []
 
     for name, qty, total in rows:
-
-        qty = qty or 0
-        total = total or 0
 
         if qty >= 10:
             insight = "🔥 Malakas ang benta"

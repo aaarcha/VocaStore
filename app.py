@@ -111,22 +111,24 @@ def sales():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT p.name, s.quantity, s.total_price, s.created_at
-        FROM sales_transactions s
-        JOIN products p ON p.id = s.product_id
-        ORDER BY s.id DESC
+        SELECT product_name, quantity, total_price, created_at
+        FROM sales_transactions
+        ORDER BY id DESC
     """)
 
     rows = cur.fetchall()
+
+    cur.close()
     conn.close()
 
     return jsonify({
+        "success": True,
         "data": [
             {
                 "product": r[0],
                 "quantity": r[1],
                 "total": float(r[2]),
-                "date": str(r[3])
+                "date": r[3].strftime("%Y-%m-%d %H:%M:%S") if r[3] else ""
             }
             for r in rows
         ]
