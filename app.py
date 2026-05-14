@@ -71,7 +71,78 @@ def search():
             for r in rows
         ]
     })
+    
+@app.route("/products", methods=["POST"])
+def add_product():
+    data = request.json
 
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO products (name, price, stock)
+        VALUES (%s, %s, %s)
+        RETURNING id
+    """, (
+        data["name"],
+        data["price"],
+        data["stock"]
+    ))
+
+    new_id = cur.fetchone()[0]
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "id": new_id
+    })
+
+
+@app.route("/products/<int:id>", methods=["PUT"])
+def update_product(id):
+    data = request.json
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE products
+        SET name=%s, price=%s, stock=%s
+        WHERE id=%s
+    """, (
+        data["name"],
+        data["price"],
+        data["stock"],
+        id
+    ))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "success": True
+    })
+
+
+@app.route("/products/<int:id>", methods=["DELETE"])
+def delete_product(id):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM products WHERE id=%s", (id,))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "success": True
+    })
+    
 app = app
 
 if __name__ == "__main__":
