@@ -3,7 +3,6 @@ from flask_cors import CORS
 from db import get_connection
 import os
 
-# IMPORTANT: Railway-safe absolute path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
@@ -13,7 +12,6 @@ CORS(app)
 @app.route("/")
 def serve_frontend():
     return send_from_directory(app.static_folder, "index.html")
-
 
 @app.route("/<path:path>")
 def serve_static(path):
@@ -71,7 +69,11 @@ def search():
             for r in rows
         ]
     })
-    
+
+
+# -------------------------
+# ADD PRODUCT
+# -------------------------
 @app.route("/products", methods=["POST"])
 def add_product():
     data = request.json
@@ -83,11 +85,7 @@ def add_product():
         INSERT INTO products (name, price, stock)
         VALUES (%s, %s, %s)
         RETURNING id
-    """, (
-        data["name"],
-        data["price"],
-        data["stock"]
-    ))
+    """, (data["name"], data["price"], data["stock"]))
 
     new_id = cur.fetchone()[0]
 
@@ -95,56 +93,14 @@ def add_product():
     cur.close()
     conn.close()
 
-    return jsonify({
-        "success": True,
-        "id": new_id
-    })
+    return jsonify({"success": True, "id": new_id})
 
 
-@app.route("/products/<int:id>", methods=["PUT"])
-def update_product(id):
-    data = request.json
-
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("""
-        UPDATE products
-        SET name=%s, price=%s, stock=%s
-        WHERE id=%s
-    """, (
-        data["name"],
-        data["price"],
-        data["stock"],
-        id
-    ))
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return jsonify({
-        "success": True
-    })
-
-
-@app.route("/products/<int:id>", methods=["DELETE"])
-def delete_product(id):
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("DELETE FROM products WHERE id=%s", (id,))
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return jsonify({
-        "success": True
-    })
-
+# -------------------------
+# UPDATE (FIXED - ONLY ONE)
+# -------------------------
 @app.route("/update-product", methods=["POST"])
-def update_product():
+def update_product_route():
     data = request.json
 
     conn = get_connection()
@@ -167,8 +123,12 @@ def update_product():
 
     return jsonify({"success": True, "message": "Updated successfully"})
 
+
+# -------------------------
+# DELETE (FIXED - ONLY ONE)
+# -------------------------
 @app.route("/delete-product", methods=["POST"])
-def delete_product():
+def delete_product_route():
     data = request.json
 
     conn = get_connection()
@@ -181,6 +141,7 @@ def delete_product():
     conn.close()
 
     return jsonify({"success": True, "message": "Deleted successfully"})
+
 
 app = app
 
