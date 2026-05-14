@@ -297,3 +297,83 @@ function closeEdit() {
 
 loadProducts();
 loadDashboardSummary();
+
+function filterProducts() {
+
+    const input =
+        document.getElementById("search")
+            .value
+            .toLowerCase();
+
+    document.querySelectorAll("#productTable tr")
+        .forEach(row => {
+
+            row.style.display =
+                row.innerText.toLowerCase().includes(input)
+                    ? ""
+                    : "none";
+        });
+}
+
+async function saveEdit() {
+
+    try {
+
+        const res = await fetch(API + "/update-product", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                id: parseInt(document.getElementById("editId").value),
+                name: document.getElementById("editName").value,
+                price: parseFloat(document.getElementById("editPrice").value),
+                stock: parseInt(document.getElementById("editStock").value)
+            })
+        });
+
+        const data = await res.json();
+
+        alert(data.message || "Updated");
+
+        closeEdit();
+
+        loadProducts();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Update failed");
+    }
+}
+
+async function deleteProduct(id) {
+
+    if (!confirm("Delete this product?")) {
+        return;
+    }
+
+    try {
+
+        const res = await fetch(API + "/delete-product", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ id })
+        });
+
+        const data = await res.json();
+
+        alert(data.message || "Deleted");
+
+        loadProducts();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Delete failed");
+    }
+}
