@@ -34,14 +34,10 @@
             <button onclick="startVoice()">🎤 Speak</button>
 
             <p id="response"></p>
-
-            <div id="dashboardSummary"></div>
-
         </div>
 
         <!-- INVENTORY -->
         <div id="inventory" class="page">
-
             <h1>Inventory</h1>
 
             <input id="search" onkeyup="filterProducts()" placeholder="Search product...">
@@ -58,7 +54,6 @@
 
                 <tbody id="productTable"></tbody>
             </table>
-
         </div>
 
         <!-- SALES -->
@@ -76,7 +71,7 @@
     </div>
 </div>
 
-<!-- EDIT SIDE PANEL -->
+<!-- EDIT PANEL -->
 <div id="editPanel" class="edit-panel">
     <input type="hidden" id="editId">
 
@@ -88,9 +83,13 @@
     <button onclick="closeEdit()">Close</button>
 </div>
 
-<script src="script.js"></script>
+<!-- POPUP MODAL -->
+<div id="popup" class="popup hidden">
+    <button class="close-btn" onclick="closePopup()">✖</button>
+    <div id="popupContent"></div>
+</div>
 
-<div id="popup" class="popup hidden"></div>
+<script src="script.js"></script>
 
 </body>
 </html>

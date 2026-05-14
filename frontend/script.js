@@ -2,6 +2,7 @@ const API = "https://vocastore-production.up.railway.app";
 
 let currentEdit = null;
 
+/* NAVIGATION */
 function showPage(pageId) {
 
     document.querySelectorAll(".page")
@@ -13,16 +14,16 @@ function showPage(pageId) {
     if (pageId === "inventory") loadProducts();
     if (pageId === "sales") loadSales();
     if (pageId === "summary") loadSummary();
-
-    if (pageId === "dashboard") loadDashboardSummary(); // ✅ ADD THIS
 }
 
+/* SPEECH */
 function speak(text) {
     const msg = new SpeechSynthesisUtterance(text);
     msg.lang = "en-PH";
     speechSynthesis.speak(msg);
 }
 
+/* COMMAND HANDLER */
 async function sendCommand() {
 
     const cmd = document.getElementById("command").value;
@@ -44,18 +45,35 @@ async function sendCommand() {
         document.getElementById("response").innerText = msg;
         speak(msg);
 
-        // 🎯 TRIGGER POPUP BASED ON INTENT
-        if (msg.toLowerCase().includes("top") ||
-            msg.toLowerCase().includes("benta") ||
-            msg.toLowerCase().includes("sales")) {
+        const lower = cmd.toLowerCase();
 
-            showPopup(`
-                <h3>🔥 Top Selling Products</h3>
-                <p>Check summary sidebar for full analytics</p>
-            `);
-        }
+        fetch(API + "/summary")
+            .then(res => res.json())
+            .then(resData => {
 
-        speak(data.message || "Done");
+                const d = resData.data || {};
+
+                /* TOP SALES */
+                if (lower.includes("top") || lower.includes("sales")) {
+
+                    showPopup(`
+                        <h2>🔥 Top Selling Products</h2>
+                        <p><b>${d.top_product || "None"}</b></p>
+                    `);
+                }
+
+                /* LOW STOCK */
+                if (lower.includes("low stock")) {
+
+                    showPopup(`
+                        <h2>⚠ Low Stock Items (≤10)</h2>
+                        ${(d.low_stock || [])
+                            .filter(p => p.stock <= 10)
+                            .map(p => `<p>${p.name} (${p.stock})</p>`)
+                            .join("")}
+                    `);
+                }
+            });
 
         setTimeout(() => {
             loadProducts();
@@ -69,6 +87,7 @@ async function sendCommand() {
     }
 }
 
+/* VOICE */
 function startVoice() {
 
     const SpeechRecognition =
@@ -92,6 +111,7 @@ function startVoice() {
     };
 }
 
+/* INVENTORY */
 async function loadProducts() {
 
     try {
@@ -126,6 +146,7 @@ async function loadProducts() {
     }
 }
 
+/* SEARCH */
 function filterProducts() {
 
     const input = document.getElementById("search").value.toLowerCase();
@@ -139,6 +160,7 @@ function filterProducts() {
         });
 }
 
+/* EDIT */
 function openEdit(id, name, price, stock) {
 
     currentEdit = id;
@@ -148,13 +170,11 @@ function openEdit(id, name, price, stock) {
     document.getElementById("editPrice").value = price;
     document.getElementById("editStock").value = stock;
 
-    document.getElementById("editPanel")
-        .classList.add("active");
+    document.getElementById("editPanel").classList.add("active");
 }
 
 function closeEdit() {
-    document.getElementById("editPanel")
-        .classList.remove("active");
+    document.getElementById("editPanel").classList.remove("active");
 }
 
 async function saveEdit() {
@@ -187,6 +207,7 @@ async function saveEdit() {
     }
 }
 
+/* DELETE */
 async function deleteProduct(id) {
 
     if (!confirm("Delete this product?")) return;
@@ -213,6 +234,7 @@ async function deleteProduct(id) {
     }
 }
 
+/* SALES */
 async function loadSales() {
 
     try {
@@ -240,6 +262,7 @@ async function loadSales() {
     }
 }
 
+/* SUMMARY */
 async function loadSummary() {
 
     try {
@@ -259,9 +282,9 @@ async function loadSummary() {
             <p>🧾 Transactions: ${d.transactions}</p>
             <p>🔥 Top Product: ${d.top_product}</p>
             <p>⚠ Low Stock:</p>
-            ${(d.low_stock || []).map(
-                p => `<p>- ${p.name} (${p.stock})</p>`
-            ).join("")}
+            ${(d.low_stock || [])
+                .map(p => `<p>- ${p.name} (${p.stock})</p>`)
+                .join("")}
         `;
 
     } catch (err) {
@@ -269,50 +292,18 @@ async function loadSummary() {
     }
 }
 
-loadProducts();
-
-function loadDashboardSummary() {
-
-    fetch(API + "/summary")
-        .then(res => res.json())
-        .then(resData => {
-
-            const d = resData.data || {};
-
-            document.getElementById("dashboardSummary").innerHTML = `
-                <div class="card">
-                    <h3>📊 Total Sales</h3>
-                    <p>₱${d.total_sales || 0}</p>
-                </div>
-
-                <div class="card">
-                    <h3>🧾 Transactions</h3>
-                    <p>${d.transactions || 0}</p>
-                </div>
-
-                <div class="card">
-                    <h3>🔥 Top Product</h3>
-                    <p>${d.top_product || "None"}</p>
-                </div>
-
-                <div class="card">
-                    <h3>⚠ Low Stock (≤10)</h3>
-                    ${(d.low_stock || [])
-                        .map(p => `<p>${p.name} (${p.stock})</p>`)
-                        .join("")}
-                </div>
-            `;
-        });
-}
-
+/* POPUP */
 function showPopup(html) {
 
     const popup = document.getElementById("popup");
 
     popup.innerHTML = html;
     popup.classList.remove("hidden");
-
-    setTimeout(() => {
-        popup.classList.add("hidden");
-    }, 4000);
 }
+
+function closePopup() {
+    document.getElementById("popup").classList.add("hidden");
+}
+
+/* INIT */
+loadProducts();
