@@ -295,14 +295,20 @@ async function loadSummary() {
 /* POPUP */
 function showPopup(html) {
 
-    const popup = document.getElementById("popup");
+    const overlay = document.getElementById("popupOverlay");
+    const content = document.getElementById("popupContent");
 
-    popup.innerHTML = html;
-    popup.classList.remove("hidden");
+    content.innerHTML = html;
+
+    overlay.classList.remove("hidden");
 }
 
-function closePopup() {
-    document.getElementById("popup").classList.add("hidden");
+function closePopup(event) {
+
+    if (event && event.target !== event.currentTarget) return;
+
+    document.getElementById("popupOverlay")
+        .classList.add("hidden");
 }
 
 /* INIT */
