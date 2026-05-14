@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from db import get_connection
 from backend.services.command_engine import handle_command
+from backend.services.analytics_service import get_summary
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -29,7 +30,6 @@ def products():
     cur.execute("SELECT id, name, price, stock FROM products ORDER BY id")
     rows = cur.fetchall()
 
-    cur.close()
     conn.close()
 
     return jsonify({
@@ -55,8 +55,6 @@ def search():
     """, (f"%{q}%",))
 
     rows = cur.fetchall()
-
-    cur.close()
     conn.close()
 
     return jsonify({
@@ -66,27 +64,6 @@ def search():
             for r in rows
         ]
     })
-
-@app.route("/products", methods=["POST"])
-def add_product():
-    data = request.json
-
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("""
-        INSERT INTO products (name, price, stock)
-        VALUES (%s, %s, %s)
-        RETURNING id
-    """, (data["name"], data["price"], data["stock"]))
-
-    new_id = cur.fetchone()[0]
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return jsonify({"success": True, "id": new_id})
 
 @app.route("/update-product", methods=["POST"])
 def update_product():
@@ -102,7 +79,6 @@ def update_product():
     """, (data["name"], data["price"], data["stock"], data["id"]))
 
     conn.commit()
-    cur.close()
     conn.close()
 
     return jsonify({"success": True, "message": "Updated successfully"})
@@ -117,7 +93,6 @@ def delete_product():
     cur.execute("DELETE FROM products WHERE id=%s", (data["id"],))
 
     conn.commit()
-    cur.close()
     conn.close()
 
     return jsonify({"success": True, "message": "Deleted successfully"})
@@ -128,8 +103,60 @@ def process_command():
     command = data.get("command", "")
 
     result = handle_command(command, get_connection)
-
     return jsonify(result)
+
+@app.route("/sales")
+def sales():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT p.name, s.quantity, s.total_price, s.created_at
+        FROM sales_transactions s
+        JOIN products p ON p.id = s.product_id
+        ORDER BY s.id DESC
+    """)
+
+    rows = cur.fetchall()
+    conn.close()
+
+    return jsonify({
+        "data": [
+            {
+                "product": r[0],
+                "quantity": r[1],
+                "total": float(r[2]),
+                "date": str(r[3])
+            }
+            for r in rows
+        ]
+    })
+
+@app.route("/summary")
+def summary():
+    result = get_summary(get_connection)
+
+    total_sales = sum(item["total_sales"] for item in result)
+    transactions = sum(item["total_sold"] for item in result)
+
+    top_product = max(result, key=lambda x: x["total_sold"])["product"] if result else "None"
+
+    low_stock = []
+
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT name, stock FROM products WHERE stock <= 5")
+    low_stock = [{"name": r[0], "stock": r[1]} for r in cur.fetchall()]
+    conn.close()
+
+    return jsonify({
+        "data": {
+            "total_sales": total_sales,
+            "transactions": transactions,
+            "top_product": top_product,
+            "low_stock": low_stock
+        }
+    })
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

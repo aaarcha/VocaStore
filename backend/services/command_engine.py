@@ -1,4 +1,6 @@
 from backend.services.ai_brain import parse_command
+from backend.services.sales_service import handle_sale
+from backend.services.inventory_service import handle_restock
 
 def handle_command(command: str, get_connection):
 
@@ -9,110 +11,32 @@ def handle_command(command: str, get_connection):
     quantity = parsed.get("quantity") or 1
 
     if not product:
+        return {"message": "Hindi ko maintindihan ang product", "type": "error"}
+
+    if intent == "SALE":
+        return handle_sale(get_connection, parsed)
+
+    if intent == "RESTOCK":
+        return handle_restock(get_connection, parsed)
+
+    if intent == "CHECK":
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT stock FROM products
+            WHERE LOWER(name)=LOWER(%s)
+        """, (product.lower(),))
+
+        result = cur.fetchone()
+        conn.close()
+
+        if not result:
+            return {"message": "Product not found", "type": "error"}
+
         return {
-            "message": "Wala akong maintindihang product.",
-            "type": "error"
+            "message": f"{product} has {result[0]} stock",
+            "type": "success"
         }
 
-    product = product.lower().strip()
-
-    conn = get_connection()
-    cur = conn.cursor()
-
-    try:
-
-        if intent == "SALE":
-
-            cur.execute("""
-                SELECT id, stock, price FROM products
-                WHERE LOWER(name) LIKE %s
-                LIMIT 1
-            """, (f"%{product}%",))
-
-            item = cur.fetchone()
-
-            if not item:
-                return {"message": "Product not found", "type": "error"}
-
-            product_id, stock, price = item
-
-            if stock < quantity:
-                return {"message": "Not enough stock", "type": "error"}
-
-            new_stock = stock - quantity
-
-            cur.execute("""
-                UPDATE products
-                SET stock=%s
-                WHERE id=%s
-            """, (new_stock, product_id))
-
-            total = quantity * float(price)
-
-            cur.execute("""
-                INSERT INTO sales_transactions (product_name, quantity, total_price)
-                VALUES (%s, %s, %s)
-            """, (product, quantity, total))
-
-            conn.commit()
-
-            return {
-                "message": f"Sold {quantity} {product}",
-                "type": "success"
-            }
-
-        if intent == "CHECK":
-
-            cur.execute("""
-                SELECT stock FROM products
-                WHERE LOWER(name) LIKE %s
-                LIMIT 1
-            """, (f"%{product}%",))
-
-            result = cur.fetchone()
-
-            if not result:
-                return {"message": "Product not found", "type": "error"}
-
-            return {
-                "message": f"{product} has {result[0]} in stock",
-                "type": "success"
-            }
-
-        if intent == "RESTOCK":
-
-            cur.execute("""
-                SELECT id, stock FROM products
-                WHERE LOWER(name) = LOWER(%s)
-                LIMIT 1
-            """, (product,))
-
-            existing = cur.fetchone()
-
-            if existing:
-                cur.execute("""
-                    UPDATE products
-                    SET stock = stock + %s
-                    WHERE id = %s
-                """, (quantity, existing[0]))
-
-                message = "Stock updated"
-
-            else:
-                cur.execute("""
-                    INSERT INTO products (name, price, stock)
-                    VALUES (%s, %s, %s)
-                """, (product, 0, quantity))
-
-                message = "New product created"
-
-            conn.commit()
-
-            return {
-                "message": f"{message}: {product}",
-                "type": "success"
-            }
-
-    finally:
-        cur.close()
-        conn.close()
+    return {"message": "Command not recognized", "type": "error"}

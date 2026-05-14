@@ -1,4 +1,5 @@
 def get_summary(db):
+
     conn = db()
     cur = conn.cursor()
 
@@ -17,6 +18,9 @@ def get_summary(db):
     result = []
 
     for name, qty, total in rows:
+
+        qty = qty or 0
+        total = total or 0
 
         if qty >= 10:
             insight = "🔥 Malakas ang benta"
