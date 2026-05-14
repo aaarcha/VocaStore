@@ -142,6 +142,64 @@ def delete_product_route():
 
     return jsonify({"success": True, "message": "Deleted successfully"})
 
+@app.route("/process-command", methods=["POST"])
+def process_command():
+    data = request.json
+    command = data.get("command", "").lower()
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    message = "Command not recognized"
+
+    # -------------------
+    # ADD PRODUCT
+    # -------------------
+    if "add" in command:
+        parts = command.split()
+
+        try:
+            name = parts[1]
+            price = float(parts[2])
+            stock = int(parts[3])
+
+            cur.execute("""
+                INSERT INTO products (name, price, stock)
+                VALUES (%s, %s, %s)
+            """, (name, price, stock))
+
+            conn.commit()
+            message = f"Added {name}"
+
+        except:
+            message = "Usage: add name price stock"
+
+    # -------------------
+    # DELETE PRODUCT
+    # -------------------
+    elif "delete" in command:
+        try:
+            product_id = int(command.split()[1])
+
+            cur.execute("DELETE FROM products WHERE id=%s", (product_id,))
+            conn.commit()
+
+            message = "Product deleted"
+        except:
+            message = "Usage: delete id"
+
+    # -------------------
+    # SHOW PRODUCTS
+    # -------------------
+    elif "show" in command:
+        cur.execute("SELECT COUNT(*) FROM products")
+        count = cur.fetchone()[0]
+        message = f"You have {count} products"
+
+    cur.close()
+    conn.close()
+
+    return jsonify({"message": message})
 
 app = app
 
