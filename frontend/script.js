@@ -39,8 +39,21 @@ async function sendCommand() {
 
         const data = await res.json();
 
-        document.getElementById("response").innerText =
-            data.message || "No response";
+        const msg = data.message || "No response";
+
+        document.getElementById("response").innerText = msg;
+        speak(msg);
+
+        // 🎯 TRIGGER POPUP BASED ON INTENT
+        if (msg.toLowerCase().includes("top") ||
+            msg.toLowerCase().includes("benta") ||
+            msg.toLowerCase().includes("sales")) {
+
+            showPopup(`
+                <h3>🔥 Top Selling Products</h3>
+                <p>Check summary sidebar for full analytics</p>
+            `);
+        }
 
         speak(data.message || "Done");
 
@@ -290,4 +303,16 @@ function loadDashboardSummary() {
                 </div>
             `;
         });
+}
+
+function showPopup(html) {
+
+    const popup = document.getElementById("popup");
+
+    popup.innerHTML = html;
+    popup.classList.remove("hidden");
+
+    setTimeout(() => {
+        popup.classList.add("hidden");
+    }, 4000);
 }

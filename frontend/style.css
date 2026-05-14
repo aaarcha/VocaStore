@@ -104,3 +104,26 @@ body {
     margin: 10px 0;
     padding: 10px;
 }
+
+.popup {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 300px;
+    background: #1e1e1e;
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    animation: fadeIn 0.3s ease;
+    z-index: 999;
+}
+
+.hidden {
+    display: none;
+}
+
+@keyframes fadeIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
