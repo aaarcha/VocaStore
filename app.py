@@ -141,10 +141,10 @@ def summary():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT
-            COALESCE(SUM(total_price), 0),
-            COUNT(*)
-        FROM sales_transactions
+        SELECT name, stock
+        FROM products
+        WHERE stock <= 10
+        ORDER BY stock ASC
     """)
 
     total_sales, transactions = cur.fetchone()
