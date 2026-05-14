@@ -12,9 +12,89 @@ def handle_command(command: str, get_connection):
     product = parsed.get("product")
     quantity = parsed.get("quantity") or 1
 
-    # -------------------------
-    # 1. SEMANTIC MEMORY SEARCH (pgvector)
-    # -------------------------
+    analytics_triggers = [
+        "top", "pinakamabenta", "best", "most sold",
+        "low stock", "kulang", "ubos",
+        "trend", "sales trend", "benta trend",
+        "ano", "what", "summary", "report"
+    ]
+
+    lower_cmd = command.lower()
+
+    if any(word in lower_cmd for word in analytics_triggers):
+
+        conn = get_connection()
+        cur = conn.cursor()
+
+        if "low stock" in lower_cmd or "kulang" in lower_cmd or "ubos" in lower_cmd:
+
+            cur.execute("""
+                SELECT name, stock
+                FROM products
+                ORDER BY stock ASC
+                LIMIT 5
+            """)
+
+            rows = cur.fetchall()
+            conn.close()
+
+            return {
+                "type": "analytics",
+                "message": "Low stock products",
+                "data": [
+                    {"name": r[0], "stock": r[1]} for r in rows
+                ]
+            }
+
+        if "top" in lower_cmd or "pinakamabenta" in lower_cmd or "best" in lower_cmd:
+
+            cur.execute("""
+                SELECT product_name, SUM(quantity) as total_sold
+                FROM sales_transactions
+                GROUP BY product_name
+                ORDER BY total_sold DESC
+                LIMIT 5
+            """)
+
+            rows = cur.fetchall()
+            conn.close()
+
+            return {
+                "type": "analytics",
+                "message": "Top selling products",
+                "data": [
+                    {"product": r[0], "sold": int(r[1])} for r in rows
+                ]
+            }
+
+        if "trend" in lower_cmd:
+
+            cur.execute("""
+                SELECT DATE(created_at), SUM(total_price)
+                FROM sales_transactions
+                GROUP BY DATE(created_at)
+                ORDER BY DATE(created_at)
+            """)
+
+            rows = cur.fetchall()
+            conn.close()
+
+            return {
+                "type": "analytics",
+                "message": "Sales trend",
+                "data": [
+                    {"date": str(r[0]), "sales": float(r[1])} for r in rows
+                ]
+            }
+
+        conn.close()
+
+        return {
+            "type": "analytics",
+            "message": "Analytics query not understood",
+            "data": []
+        }
+
     similar = find_similar(get_connection, command)
 
     if similar:
@@ -23,25 +103,18 @@ def handle_command(command: str, get_connection):
 
         _, mem_intent, mem_product = best_match
 
-        # fallback if parser fails
         if not intent:
             intent = mem_intent
 
         if not product:
             product = mem_product
 
-    # -------------------------
-    # 2. VALIDATION
-    # -------------------------
-    if not product:
+    if not product and intent in ["SALE", "RESTOCK", "CHECK"]:
         return {
             "message": "Hindi ko maintindihan ang product",
             "type": "error"
         }
 
-    # -------------------------
-    # 3. EXECUTION
-    # -------------------------
     result = None
 
     if intent == "SALE":
@@ -74,9 +147,6 @@ def handle_command(command: str, get_connection):
     else:
         return {"message": "Command not recognized", "type": "error"}
 
-    # -------------------------
-    # 4. SAVE MEMORY (pgvector)
-    # -------------------------
     if result and result.get("type") == "success":
         save_command(get_connection, command, intent, product)
 
