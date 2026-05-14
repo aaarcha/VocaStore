@@ -6,6 +6,8 @@ def parse_command(command):
 
     command = normalize_numbers(command)
 
+    command = command.replace("naka benta", "nakabenta")
+
     words = command.split()
 
     result = {
@@ -39,8 +41,8 @@ def parse_command(command):
         "may",
         "ang",
         "na",
-        "ako",
-        "ko"
+        "ko",
+        "naka"
     ]
 
     if any(word in words for word in sale_words):
