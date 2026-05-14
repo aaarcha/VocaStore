@@ -13,6 +13,8 @@ function showPage(pageId) {
     if (pageId === "inventory") loadProducts();
     if (pageId === "sales") loadSales();
     if (pageId === "summary") loadSummary();
+
+    if (pageId === "dashboard") loadDashboardSummary(); // ✅ ADD THIS
 }
 
 function speak(text) {
@@ -255,3 +257,37 @@ async function loadSummary() {
 }
 
 loadProducts();
+
+function loadDashboardSummary() {
+
+    fetch(API + "/summary")
+        .then(res => res.json())
+        .then(resData => {
+
+            const d = resData.data || {};
+
+            document.getElementById("dashboardSummary").innerHTML = `
+                <div class="card">
+                    <h3>📊 Total Sales</h3>
+                    <p>₱${d.total_sales || 0}</p>
+                </div>
+
+                <div class="card">
+                    <h3>🧾 Transactions</h3>
+                    <p>${d.transactions || 0}</p>
+                </div>
+
+                <div class="card">
+                    <h3>🔥 Top Product</h3>
+                    <p>${d.top_product || "None"}</p>
+                </div>
+
+                <div class="card">
+                    <h3>⚠ Low Stock (≤10)</h3>
+                    ${(d.low_stock || [])
+                        .map(p => `<p>${p.name} (${p.stock})</p>`)
+                        .join("")}
+                </div>
+            `;
+        });
+}
