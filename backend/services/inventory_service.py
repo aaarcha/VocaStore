@@ -5,17 +5,36 @@ def handle_restock(get_connection, parsed):
 
     try:
         cur.execute("""
-            UPDATE products
-            SET stock = stock + %s
+            SELECT id FROM products
             WHERE LOWER(name)=LOWER(%s)
-        """, (parsed["quantity"], parsed["product"]))
+            LIMIT 1
+        """, (parsed["product"],))
 
-        if cur.rowcount == 0:
-            return {"message": "Product not found", "type": "error"}
+        existing = cur.fetchone()
+
+        if existing:
+            cur.execute("""
+                UPDATE products
+                SET stock = stock + %s
+                WHERE id=%s
+            """, (parsed["quantity"], existing[0]))
+
+            message = "Stock updated"
+
+        else:
+            cur.execute("""
+                INSERT INTO products (name, price, stock)
+                VALUES (%s, %s, %s)
+            """, (parsed["product"], 0, parsed["quantity"]))
+
+            message = "New product created"
 
         conn.commit()
 
-        return {"message": "Stock updated", "type": "success"}
+        return {
+            "message": f"{message}: {parsed['product']}",
+            "type": "success"
+        }
 
     finally:
         cur.close()
