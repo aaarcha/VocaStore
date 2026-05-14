@@ -142,7 +142,46 @@ def delete_product(id):
     return jsonify({
         "success": True
     })
-    
+
+@app.route("/update-product", methods=["POST"])
+def update_product():
+    data = request.json
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE products
+        SET name=%s, price=%s, stock=%s
+        WHERE id=%s
+    """, (
+        data["name"],
+        data["price"],
+        data["stock"],
+        data["id"]
+    ))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"success": True, "message": "Updated successfully"})
+
+@app.route("/delete-product", methods=["POST"])
+def delete_product():
+    data = request.json
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM products WHERE id=%s", (data["id"],))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"success": True, "message": "Deleted successfully"})
+
 app = app
 
 if __name__ == "__main__":
