@@ -189,14 +189,7 @@ async function loadDashboardSummary() {
     const res = await fetch(API + "/summary");
     const resData = await res.json();
 
-    const d = resData.data || {};
-
-    document.getElementById("dashboardSummary").innerHTML = `
-        <div class="card">
-            <h3>Quick Analytics</h3>
-            <p>Say: "top sales", "low stock", "analytics"</p>
-        </div>
-    `;
+    document.getElementById("dashboardSummary").innerHTML = "";
 }
 
 /* -----------------------------
