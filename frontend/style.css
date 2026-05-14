@@ -114,7 +114,6 @@ button {
 }
 
 /* POPUP OVERLAY */
-
 .popup-overlay {
     position: fixed;
     inset: 0;
@@ -125,12 +124,16 @@ button {
     align-items: center;
 
     z-index: 9999;
+
+    opacity: 1;
+    pointer-events: auto;
+
+    transition: 0.2s;
 }
 
-/* VERY IMPORTANT FIX */
-
 .popup-overlay.hidden {
-    display: none;
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* POPUP */
