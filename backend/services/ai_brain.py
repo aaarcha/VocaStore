@@ -1,11 +1,14 @@
 from backend.services.text_normalizer import normalize_numbers
 
-def parse_command(command):
+
+def parse_command(command: str):
 
     command = command.lower().strip()
 
+    # normalize Tagalog numbers → digits
     command = normalize_numbers(command)
 
+    # unify common phrases
     command = command.replace("naka benta", "nakabenta")
 
     words = command.split()
@@ -16,6 +19,9 @@ def parse_command(command):
         "quantity": 1
     }
 
+    # -------------------------
+    # INTENT WORDS
+    # -------------------------
     sale_words = [
         "benta",
         "sell",
@@ -33,7 +39,8 @@ def parse_command(command):
         "stock",
         "ilan",
         "check",
-        "how many"
+        "how",
+        "many"
     ]
 
     ignore_words = [
@@ -43,24 +50,38 @@ def parse_command(command):
         "ang",
         "na",
         "ko",
-        "naka"
+        "naka",
+        "po",
+        "sa",
+        "yung",
+        "ito",
+        "the"
     ]
 
-    if any(word in words for word in sale_words):
+    # -------------------------
+    # INTENT DETECTION
+    # -------------------------
+    if any(w in words for w in sale_words):
         result["intent"] = "SALE"
 
-    elif any(word in words for word in restock_words):
+    elif any(w in words for w in restock_words):
         result["intent"] = "RESTOCK"
 
-    elif any(word in words for word in check_words):
+    elif any(w in words for w in check_words):
         result["intent"] = "CHECK"
 
+    # -------------------------
+    # QUANTITY DETECTION
+    # -------------------------
     for word in words:
-
         if word.isdigit():
             result["quantity"] = int(word)
+            break
 
-    ignore = (
+    # -------------------------
+    # PRODUCT DETECTION
+    # -------------------------
+    ignore = set(
         sale_words +
         restock_words +
         check_words +

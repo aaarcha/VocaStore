@@ -30,16 +30,21 @@ NUMBER_MAP = {
     "sampung": "10"
 }
 
-def normalize_numbers(text):
+
+def normalize_numbers(text: str):
+
+    text = text.lower()
+
+    # replace multi-word numbers FIRST
+    for key in ["apat na", "anim na", "pitong", "walong", "siyam na", "sampung"]:
+        if key in text:
+            text = text.replace(key, NUMBER_MAP[key])
 
     words = text.split()
 
     normalized = []
 
     for word in words:
-
-        normalized.append(
-            NUMBER_MAP.get(word, word)
-        )
+        normalized.append(NUMBER_MAP.get(word, word))
 
     return " ".join(normalized)
