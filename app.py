@@ -25,8 +25,10 @@ def serve_static(path):
 def products():
     conn = get_connection()
     cur = conn.cursor()
+
     cur.execute("SELECT id, name, price, stock FROM products ORDER BY id")
     rows = cur.fetchall()
+
     cur.close()
     conn.close()
 
@@ -41,6 +43,7 @@ def products():
 @app.route("/search")
 def search():
     q = request.args.get("q", "").lower()
+
     conn = get_connection()
     cur = conn.cursor()
 
@@ -52,6 +55,7 @@ def search():
     """, (f"%{q}%",))
 
     rows = cur.fetchall()
+
     cur.close()
     conn.close()
 
@@ -63,6 +67,61 @@ def search():
         ]
     })
 
+@app.route("/products", methods=["POST"])
+def add_product():
+    data = request.json
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO products (name, price, stock)
+        VALUES (%s, %s, %s)
+        RETURNING id
+    """, (data["name"], data["price"], data["stock"]))
+
+    new_id = cur.fetchone()[0]
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"success": True, "id": new_id})
+
+@app.route("/update-product", methods=["POST"])
+def update_product():
+    data = request.json
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE products
+        SET name=%s, price=%s, stock=%s
+        WHERE id=%s
+    """, (data["name"], data["price"], data["stock"], data["id"]))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"success": True, "message": "Updated successfully"})
+
+@app.route("/delete-product", methods=["POST"])
+def delete_product():
+    data = request.json
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM products WHERE id=%s", (data["id"],))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"success": True, "message": "Deleted successfully"})
+
 @app.route("/process-command", methods=["POST"])
 def process_command():
     data = request.json
@@ -71,3 +130,7 @@ def process_command():
     result = handle_command(command, get_connection)
 
     return jsonify(result)
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

@@ -11,7 +11,7 @@ def handle_restock(get_connection, parsed):
         """, (parsed["quantity"], parsed["product"]))
 
         if cur.rowcount == 0:
-            return {"error": "Product not found"}
+            return {"message": "Product not found", "type": "error"}
 
         conn.commit()
 
@@ -31,16 +31,16 @@ def handle_check(get_connection, parsed):
         cur.execute("""
             SELECT stock FROM products
             WHERE LOWER(name)=LOWER(%s)
+            LIMIT 1
         """, (parsed["product"],))
 
         result = cur.fetchone()
 
         if not result:
-            return {"error": "Product not found"}
+            return {"message": "Product not found", "type": "error"}
 
         return {
-            "product": parsed["product"],
-            "stock": result[0],
+            "message": f"{parsed['product']} has {result[0]} in stock",
             "type": "success"
         }
 

@@ -1,5 +1,4 @@
 from backend.services.ai_brain import parse_command
-from backend.services.inventory_service import handle_restock, handle_check
 
 def handle_command(command: str, get_connection):
 
@@ -17,14 +16,17 @@ def handle_command(command: str, get_connection):
 
     product = product.lower().strip()
 
-    if intent == "SALE":
-        conn = get_connection()
-        cur = conn.cursor()
+    conn = get_connection()
+    cur = conn.cursor()
 
-        try:
+    try:
+
+        if intent == "SALE":
+
             cur.execute("""
-                SELECT stock, price FROM products
+                SELECT id, stock, price FROM products
                 WHERE LOWER(name) LIKE %s
+                LIMIT 1
             """, (f"%{product}%",))
 
             item = cur.fetchone()
@@ -32,7 +34,7 @@ def handle_command(command: str, get_connection):
             if not item:
                 return {"message": "Product not found", "type": "error"}
 
-            stock, price = item
+            product_id, stock, price = item
 
             if stock < quantity:
                 return {"message": "Not enough stock", "type": "error"}
@@ -42,8 +44,8 @@ def handle_command(command: str, get_connection):
             cur.execute("""
                 UPDATE products
                 SET stock=%s
-                WHERE LOWER(name) LIKE %s
-            """, (new_stock, f"%{product}%"))
+                WHERE id=%s
+            """, (new_stock, product_id))
 
             total = quantity * float(price)
 
@@ -59,17 +61,44 @@ def handle_command(command: str, get_connection):
                 "type": "success"
             }
 
-        finally:
-            cur.close()
-            conn.close()
+        if intent == "CHECK":
 
-    if intent == "CHECK":
-        return handle_check(get_connection, parsed)
+            cur.execute("""
+                SELECT stock FROM products
+                WHERE LOWER(name) LIKE %s
+                LIMIT 1
+            """, (f"%{product}%",))
 
-    if intent == "RESTOCK":
-        return handle_restock(get_connection, parsed)
+            result = cur.fetchone()
 
-    return {
-        "message": "Command not recognized",
-        "type": "error"
-    }
+            if not result:
+                return {"message": "Product not found", "type": "error"}
+
+            return {
+                "message": f"{product} has {result[0]} in stock",
+                "type": "success"
+            }
+
+        if intent == "RESTOCK":
+
+            cur.execute("""
+                UPDATE products
+                SET stock = stock + %s
+                WHERE LOWER(name) LIKE %s
+            """, (quantity, f"%{product}%"))
+
+            conn.commit()
+
+            return {
+                "message": f"Restocked {product} by {quantity}",
+                "type": "success"
+            }
+
+        return {
+            "message": "Command not recognized",
+            "type": "error"
+        }
+
+    finally:
+        cur.close()
+        conn.close()
