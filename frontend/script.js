@@ -58,25 +58,59 @@ async function sendCommand() {
         document.getElementById("response").innerText = msg;
         speak(msg);
 
-        const intent = detectAnalyticsIntent(cmd);
+        const lowered = cmd.toLowerCase();
 
-        if (intent === "ANALYTICS") {
+        const summary = await fetch(API + "/summary");
+        const resData = await summary.json();
+        const d = resData.data || {};
 
-            const summary = await fetch(API + "/summary");
-            const resData = await summary.json();
-            const d = resData.data || {};
+        if (lowered.includes("top sales") ||
+            lowered.includes("top product")) {
 
             showPopup(`
-                <h3>📊 Analytics</h3>
+                <h2>🔥 Top Selling Product</h2>
 
-                <p><b>🔥 Top Product:</b> ${d.top_product || "None"}</p>
+                <div class="card">
+                    <h3>${d.top_product || "None"}</h3>
+                </div>
+            `);
+        }
 
-                <p><b>⚠ Low Stock (≤10):</b></p>
+        else if (lowered.includes("low stock")) {
+
+            showPopup(`
+                <h2>⚠ Low Stock Products</h2>
 
                 ${(d.low_stock || [])
                     .filter(p => p.stock <= 10)
-                    .map(p => `<p>- ${p.name} (${p.stock})</p>`)
-                    .join("") || "<p>No low stock items</p>"}
+                    .map(p => `
+                        <div class="card">
+                            <b>${p.name}</b><br>
+                            Remaining Stock: ${p.stock}
+                        </div>
+                    `).join("") || "<p>No low stock items</p>"}
+            `);
+        }
+
+        else if (lowered.includes("analytics")) {
+
+            showPopup(`
+                <h2>📊 Store Analytics</h2>
+
+                <div class="card">
+                    <b>Total Sales:</b><br>
+                    ₱${d.total_sales || 0}
+                </div>
+
+                <div class="card">
+                    <b>Transactions:</b><br>
+                    ${d.transactions || 0}
+                </div>
+
+                <div class="card">
+                    <b>Top Product:</b><br>
+                    ${d.top_product || "None"}
+                </div>
             `);
         }
 
@@ -99,15 +133,24 @@ async function sendCommand() {
 
 function showPopup(html) {
 
-    const popup = document.getElementById("popup");
+    const overlay = document.getElementById("popupOverlay");
     const content = document.getElementById("popupContent");
 
     content.innerHTML = html;
-    popup.classList.remove("hidden");
+
+    overlay.classList.remove("hidden");
 }
 
-function closePopup() {
-    document.getElementById("popup").classList.add("hidden");
+function closePopup(event) {
+
+    if (
+        !event ||
+        event.target.id === "popupOverlay" ||
+        event.target.classList.contains("close-btn")
+    ) {
+        document.getElementById("popupOverlay")
+            .classList.add("hidden");
+    }
 }
 
 /* -----------------------------
