@@ -136,28 +136,12 @@ def sales():
 
 @app.route("/summary")
 def summary():
+
     result = get_summary(get_connection)
 
-    total_sales = sum(item["total_sales"] for item in result)
-    transactions = sum(item["total_sold"] for item in result)
-
-    top_product = max(result, key=lambda x: x["total_sold"])["product"] if result else "None"
-
-    low_stock = []
-
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT name, stock FROM products WHERE stock <= 5")
-    low_stock = [{"name": r[0], "stock": r[1]} for r in cur.fetchall()]
-    conn.close()
-
     return jsonify({
-        "data": {
-            "total_sales": total_sales,
-            "transactions": transactions,
-            "top_product": top_product,
-            "low_stock": low_stock
-        }
+        "success": True,
+        "data": result
     })
 
 if __name__ == "__main__":
