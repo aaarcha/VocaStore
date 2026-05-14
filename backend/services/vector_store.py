@@ -37,7 +37,6 @@ def save_command(db, command, intent, product):
     conn.commit()
     conn.close()
 
-
 def find_similar(db, command):
 
     conn = db()
@@ -45,12 +44,15 @@ def find_similar(db, command):
 
     embedding = embed_text(command)
 
+    # convert Python list → pgvector format string
+    embedding_str = "[" + ",".join(map(str, embedding)) + "]"
+
     cur.execute("""
         SELECT command, intent, product
         FROM command_memory
-        ORDER BY embedding <-> %s
+        ORDER BY embedding <-> %s::vector
         LIMIT 3
-    """, (embedding,))
+    """, (embedding_str,))
 
     results = cur.fetchall()
 
