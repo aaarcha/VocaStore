@@ -32,7 +32,8 @@ def parse_command(command):
     check_words = [
         "stock",
         "ilan",
-        "check"
+        "check",
+        "how many"
     ]
 
     ignore_words = [
