@@ -1,9 +1,10 @@
 from backend.services.ai_brain import parse_command
 from backend.services.sales_service import handle_sale
 from backend.services.inventory_service import handle_restock
+from backend.services.vector_store import save_command_embedding
 
 def handle_command(command: str, get_connection):
-
+    save_command_embedding(get_connection, command)
     parsed = parse_command(command)
 
     intent = parsed.get("intent")
