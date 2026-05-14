@@ -141,19 +141,18 @@ def summary():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT name, stock
-        FROM products
-        WHERE stock <= 10
-        ORDER BY stock ASC
+        SELECT COALESCE(SUM(total_price), 0),
+               COUNT(*)
+        FROM sales_transactions
     """)
 
     total_sales, transactions = cur.fetchone()
 
     cur.execute("""
-        SELECT product_name, SUM(quantity) as total_sold
+        SELECT product_name, SUM(quantity)
         FROM sales_transactions
         GROUP BY product_name
-        ORDER BY total_sold DESC
+        ORDER BY SUM(quantity) DESC
         LIMIT 1
     """)
 
@@ -162,8 +161,8 @@ def summary():
     cur.execute("""
         SELECT name, stock
         FROM products
+        WHERE stock <= 10
         ORDER BY stock ASC
-        LIMIT 5
     """)
 
     low_stock = cur.fetchall()
@@ -174,7 +173,7 @@ def summary():
         "data": {
             "total_sales": float(total_sales or 0),
             "transactions": int(transactions or 0),
-            "top_product": top[0] if top else "None",
+            "top_product": top[0] if top else None,
             "low_stock": [
                 {"name": r[0], "stock": r[1]} for r in low_stock
             ]
