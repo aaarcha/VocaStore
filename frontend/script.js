@@ -2,9 +2,6 @@ const API = "https://vocastore-production.up.railway.app";
 
 let currentEdit = null;
 
-// -------------------------
-// NAVIGATION
-// -------------------------
 function showPage(pageId) {
 
     document.querySelectorAll(".page")
@@ -18,53 +15,63 @@ function showPage(pageId) {
     if (pageId === "summary") loadSummary();
 }
 
-// -------------------------
-// SPEAK
-// -------------------------
 function speak(text) {
     const msg = new SpeechSynthesisUtterance(text);
     msg.lang = "en-PH";
     speechSynthesis.speak(msg);
 }
 
-// -------------------------
-// COMMAND
-// -------------------------
-function sendCommand() {
+async function sendCommand() {
 
     const cmd = document.getElementById("command").value;
 
-    fetch(API + "/process-command", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({command: cmd})
-    })
-    .then(r => r.json())
-    .then(data => {
+    try {
 
-        document.getElementById("response").innerText = data.message;
-        speak(data.message);
+        const res = await fetch(API + "/process-command", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ command: cmd })
+        });
+
+        const data = await res.json();
+
+        document.getElementById("response").innerText =
+            data.message || "No response";
+
+        speak(data.message || "Done");
 
         loadProducts();
         loadSales();
         loadSummary();
-    });
+
+    } catch (err) {
+
+        console.error(err);
+
+        document.getElementById("response").innerText =
+            "Server error";
+    }
 }
 
-// -------------------------
-// VOICE
-// -------------------------
 function startVoice() {
 
     const SpeechRecognition =
         window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-PH";
+    if (!SpeechRecognition) {
+        alert("Voice recognition not supported");
+        return;
+    }
 
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "en-PH";
     recognition.start();
 
     recognition.onresult = (e) => {
+
         document.getElementById("command").value =
             e.results[0][0].transcript;
 
@@ -72,48 +79,51 @@ function startVoice() {
     };
 }
 
-// -------------------------
-// PRODUCTS
-// -------------------------
-function loadProducts() {
+async function loadProducts() {
 
-    fetch(API + "/products")
-        .then(r => r.json())
-        .then(res => {
+    try {
 
-            const table = document.getElementById("productTable");
-            table.innerHTML = "";
+        const res = await fetch(API + "/products");
+        const data = await res.json();
 
-            (res.data || []).forEach(p => {
+        const table = document.getElementById("productTable");
 
-                table.innerHTML += `
-                    <tr>
-                        <td>${p.name}</td>
-                        <td>₱${p.price}</td>
-                        <td>${p.stock}</td>
-                        <td>
-                            <button onclick="openEdit(${p.id}, '${p.name}', ${p.price}, ${p.stock})">
-                                Edit
-                            </button>
-                            <button onclick="deleteProduct(${p.id})">
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
+        table.innerHTML = "";
+
+        (data.data || []).forEach(p => {
+
+            table.innerHTML += `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>₱${p.price}</td>
+                    <td>${p.stock}</td>
+                    <td>
+                        <button onclick="openEdit(${p.id}, '${p.name}', ${p.price}, ${p.stock})">
+                            Edit
+                        </button>
+
+                        <button onclick="deleteProduct(${p.id})">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `;
         });
+
+    } catch (err) {
+
+        console.error(err);
+    }
 }
 
-// -------------------------
-// FILTER
-// -------------------------
 function filterProducts() {
 
-    const input = document.getElementById("search").value.toLowerCase();
+    const input =
+        document.getElementById("search").value.toLowerCase();
 
     document.querySelectorAll("#productTable tr")
         .forEach(row => {
+
             row.style.display =
                 row.innerText.toLowerCase().includes(input)
                     ? ""
@@ -121,9 +131,6 @@ function filterProducts() {
         });
 }
 
-// -------------------------
-// EDIT PANEL
-// -------------------------
 function openEdit(id, name, price, stock) {
 
     currentEdit = id;
@@ -133,104 +140,127 @@ function openEdit(id, name, price, stock) {
     document.getElementById("editPrice").value = price;
     document.getElementById("editStock").value = stock;
 
-    document.getElementById("editPanel").classList.add("active");
+    document.getElementById("editPanel")
+        .classList.add("active");
 }
 
 function closeEdit() {
-    document.getElementById("editPanel").classList.remove("active");
+
+    document.getElementById("editPanel")
+        .classList.remove("active");
 }
 
-// -------------------------
-// SAVE EDIT (FIXED)
-// -------------------------
-function saveEdit() {
+async function saveEdit() {
 
-    fetch(API + "/update-product", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            id: document.getElementById("editId").value,
-            name: document.getElementById("editName").value,
-            price: parseFloat(document.getElementById("editPrice").value),
-            stock: parseInt(document.getElementById("editStock").value)
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
+    try {
 
-        alert(data.message);
+        const res = await fetch(API + "/update-product", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                id: parseInt(document.getElementById("editId").value),
+                name: document.getElementById("editName").value,
+                price: parseFloat(document.getElementById("editPrice").value),
+                stock: parseInt(document.getElementById("editStock").value)
+            })
+        });
+
+        const data = await res.json();
+
+        alert(data.message || "Updated");
 
         closeEdit();
+
         loadProducts();
-    });
+
+    } catch (err) {
+
+        console.error(err);
+        alert("Update failed");
+    }
 }
 
-// -------------------------
-// DELETE
-// -------------------------
-function deleteProduct(id) {
+async function deleteProduct(id) {
 
     if (!confirm("Delete this product?")) return;
 
-    fetch(API + "/delete-product", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({id})
-    })
-    .then(r => r.json())
-    .then(data => {
+    try {
 
-        alert(data.message);
-        loadProducts();
-    });
-}
-
-// -------------------------
-// SALES (REAL DB)
-// -------------------------
-function loadSales() {
-
-    fetch(API + "/sales")
-        .then(r => r.json())
-        .then(res => {
-
-            const box = document.getElementById("salesList");
-            box.innerHTML = "";
-
-            (res.data || []).forEach(s => {
-
-                box.innerHTML += `
-                    <div class="card">
-                        <b>${s.product}</b><br>
-                        Qty: ${s.quantity}<br>
-                        Total: ₱${s.total}<br>
-                        <small>${s.date}</small>
-                    </div>
-                `;
-            });
+        const res = await fetch(API + "/delete-product", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ id })
         });
+
+        const data = await res.json();
+
+        alert(data.message || "Deleted");
+
+        loadProducts();
+
+    } catch (err) {
+
+        console.error(err);
+        alert("Delete failed");
+    }
 }
 
-// -------------------------
-// SUMMARY (REAL DB)
-// -------------------------
-function loadSummary() {
+async function loadSales() {
 
-    fetch(API + "/summary")
-        .then(r => r.json())
-        .then(res => {
+    try {
 
-            const d = res.data;
+        const res = await fetch(API + "/sales");
+        const data = await res.json();
 
-            document.getElementById("summaryBox").innerHTML = `
-                <p>📊 Total Sales: ₱${d.total_sales}</p>
-                <p>🧾 Transactions: ${d.transactions}</p>
-                <p>🔥 Top Product: ${d.top_product}</p>
-                <p>⚠ Low Stock:</p>
-                ${d.low_stock.map(p => `<p>- ${p.name} (${p.stock})</p>`).join("")}
+        const box = document.getElementById("salesList");
+
+        box.innerHTML = "";
+
+        (data.data || []).forEach(s => {
+
+            box.innerHTML += `
+                <div class="card">
+                    <b>${s.product}</b><br>
+                    Qty: ${s.quantity}<br>
+                    Total: ₱${s.total}<br>
+                    <small>${s.date}</small>
+                </div>
             `;
         });
+
+    } catch (err) {
+
+        console.error(err);
+    }
 }
 
-// INIT
+async function loadSummary() {
+
+    try {
+
+        const res = await fetch(API + "/summary");
+        const resData = await res.json();
+
+        const d = resData.data;
+
+        document.getElementById("summaryBox").innerHTML = `
+            <p>📊 Total Sales: ₱${d.total_sales}</p>
+            <p>🧾 Transactions: ${d.transactions}</p>
+            <p>🔥 Top Product: ${d.top_product}</p>
+            <p>⚠ Low Stock:</p>
+            ${d.low_stock.map(
+                p => `<p>- ${p.name} (${p.stock})</p>`
+            ).join("")}
+        `;
+
+    } catch (err) {
+
+        console.error(err);
+    }
+}
+
 loadProducts();
