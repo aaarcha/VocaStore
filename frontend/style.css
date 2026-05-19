@@ -14,7 +14,7 @@ body {
 .sidebar {
     width: 220px;
     background: #111827;
-    color: rgba(121, 137, 173, 0.888);
+    color: rgba(195, 206, 230, 0.888);
     padding: 20px;
     flex-shrink: 0;
 }
