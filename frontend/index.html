@@ -1,63 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VocaStore Dashboard</title>
-<link rel="stylesheet" href="style.css">
-
-<!-- Link to external CSS for styling -->
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VocaStore Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    </head>
 
 <body>
 
-<!-- Main layout container -->
-
 <div class="layout">
 
-    <!-- SIDEBAR -->
     <div class="sidebar">
-        <h2>🛒 VocaStore</h2>
+        <h2>VocaStore</h2>
 
-        <!-- Navigation buttons to switch pages -->
-        <button onclick="showPage('dashboard')">🏠 Dashboard</button>
-        <button onclick="showPage('inventory')">📦 Inventory</button>
-        <button onclick="showPage('sales')">💰 Sales</button>
-        <button onclick="showPage('summary')">📊 Summary</button>
+        <button onclick="showPage('dashboard')">Dashboard</button>
+        <button onclick="showPage('inventory')">Inventory</button>
+        <button onclick="showPage('sales')">Sales</button>
+        <button onclick="showPage('summary')">Summary</button>
     </div>
 
-    <!-- MAIN CONTENT AREA -->
     <div class="main">
 
-        <!-- DASHBOARD PAGE (Voice Command System)-->
         <div id="dashboard" class="page active">
             <h1>Dashboard</h1>
 
-         <!-- Input field for voice or typed commands -->    
             <input id="command" placeholder="Speak or type command">
 
-        <!-- Button to send typed command -->    
             <button onclick="sendCommand()">Send</button>
-        <!-- Button to activate voice input -->
-            <button onclick="startVoice()">🎤 Speak</button>
+            
+            <button onclick="startVoice()">Speak</button>
 
-        <!-- Area where system response is shown -->
             <p id="response"></p>
         
-            <!-- Dashboard summary section -->
             <div id="dashboardSummary"></div>
         </div>
 
-        <!-- INVENTORY PAGE (Product Management) -->
         <div id="inventory" class="page">
-
             <h1>Inventory</h1>
 
-
-        <!-- Search bar for filtering products -->
             <input id="search" onkeyup="filterProducts()" placeholder="Search product...">
         
-        <!-- Product table -->
             <table>
                 <thead>
                     <tr>
@@ -68,35 +51,26 @@
                     </tr>
                 </thead>
 
-                <!-- Table body where products will be inserted dynamically -->
                 <tbody id="productTable"></tbody>
             </table>
-
         </div>
 
-        <!-- SALES PAGE (Displays sales records) -->
         <div id="sales" class="page">
             <h1>Sales</h1>
             <div id="salesList"></div>
         </div>
 
-        <!-- SUMMARY PAGE (Overview of system data) -->
         <div id="summary" class="page">
             <h1>Summary</h1>
-            <!-- Summary information display -->
             <div id="summaryBox"></div>
         </div>
 
     </div>
 </div>
 
-<!-- EDIT PANEL (Used for editing product details) -->
 <div id="editPanel" class="edit-panel">
-
-    <!-- Hidden field to store product ID -->
     <input type="hidden" id="editId">
 
-    <!-- Input fields for editing product -->
     <input id="editName" placeholder="Name">
     <input id="editPrice" placeholder="Price">
     <input id="editStock" placeholder="Stock">
@@ -105,17 +79,14 @@
     <button onclick="closeEdit()">Close</button>
 </div>
 
-<!-- POPUP MODAL (For alerts or extra information) -->
 <div id="popupOverlay" class="popup-overlay hidden">
     <div id="popup" class="popup hidden">
         <button class="close-btn" onclick="closePopup()">✖</button>
         
-        <!-- Popup content area -->
         <div id="popupContent"></div>
     </div>
 </div>
 
-<!-- Link to JavaScript file for functionality -->
 <script src="script.js"></script>
 </body>
 </html>
