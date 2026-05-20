@@ -38,9 +38,29 @@ async function sendCommand() {
             const cleaned =
                 lowered.replace("add to cart", "").trim();
 
+            const numberWords = {
+                "isa": 1,
+                "isang": 1,
+                "dalawa": 2,
+                "tatlo": 3,
+                "apat": 4,
+                "lima": 5,
+                "lima'ng": 5,
+                "limang": 5,
+                "anim": 6,
+                "pito": 7,
+                "walo": 8,
+                "siyam": 9,
+                "sampu": 10
+            };
+
             const parts = cleaned.split(" ");
 
-            const quantity = parseInt(parts[0]) || 1;
+            let quantity = parseInt(parts[0]);
+
+            if (isNaN(quantity)) {
+                quantity = numberWords[parts[0]] || 1;
+            }
 
             const product =
                 parts.slice(1).join(" ");
