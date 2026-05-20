@@ -1,5 +1,7 @@
 const API = "https://vocastore-production.up.railway.app";
 
+let cart = [];
+
 function showPage(pageId) {
 
     document.querySelectorAll(".page")
@@ -15,28 +17,12 @@ function showPage(pageId) {
 }
 
 function speak(text) {
+
     const msg = new SpeechSynthesisUtterance(text);
+
     msg.lang = "en-PH";
+
     speechSynthesis.speak(msg);
-}
-
-/* -----------------------------
-   SMART COMMAND TRIGGER SYSTEM
------------------------------- */
-
-function detectAnalyticsIntent(text) {
-
-    text = text.toLowerCase();
-
-    if (text.includes("top sales") ||
-        text.includes("top product") ||
-        text.includes("sales trend") ||
-        text.includes("analytics") ||
-        text.includes("low stock")) {
-        return "ANALYTICS";
-    }
-
-    return null;
 }
 
 async function sendCommand() {
@@ -45,10 +31,38 @@ async function sendCommand() {
 
     try {
 
+        const lowered = cmd.toLowerCase();
+
+        if (lowered.startsWith("add to cart")) {
+
+            const cleaned =
+                lowered.replace("add to cart", "").trim();
+
+            const parts = cleaned.split(" ");
+
+            const quantity = parseInt(parts[0]) || 1;
+
+            const product =
+                parts.slice(1).join(" ");
+
+            await addToCart(product, quantity);
+
+            document.getElementById("response").innerText =
+                `${product} added to cart`;
+
+            speak(`${product} added to cart`);
+
+            return;
+        }
+
         const res = await fetch(API + "/process-command", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ command: cmd })
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                command: cmd
+            })
         });
 
         const data = await res.json();
@@ -56,16 +70,19 @@ async function sendCommand() {
         const msg = data.message || "No response";
 
         document.getElementById("response").innerText = msg;
+
         speak(msg);
 
-        const lowered = cmd.toLowerCase();
-
         const summary = await fetch(API + "/summary");
+
         const resData = await summary.json();
+
         const d = resData.data || {};
 
-        if (lowered.includes("top sales") ||
-            lowered.includes("top product")) {
+        if (
+            lowered.includes("top sales") ||
+            lowered.includes("top product")
+        ) {
 
             showPopup(`
                 <h2>🔥 Top Selling Product</h2>
@@ -115,26 +132,30 @@ async function sendCommand() {
         }
 
         setTimeout(() => {
+
             loadProducts();
             loadSales();
             loadSummary();
             loadDashboardSummary();
+
         }, 300);
 
     } catch (err) {
+
         console.error(err);
-        document.getElementById("response").innerText = "Server error";
+
+        document.getElementById("response").innerText =
+            "Server error";
     }
 }
 
-/* -----------------------------
-   POPUP SYSTEM
------------------------------- */
-
 function showPopup(html) {
 
-    const overlay = document.getElementById("popupOverlay");
-    const content = document.getElementById("popupContent");
+    const overlay =
+        document.getElementById("popupOverlay");
+
+    const content =
+        document.getElementById("popupContent");
 
     content.innerHTML = html;
 
@@ -148,31 +169,33 @@ function closePopup(event) {
         event.target.id === "popupOverlay" ||
         event.target.classList.contains("close-btn")
     ) {
+
         document.getElementById("popupOverlay")
             .classList.add("hidden");
     }
 }
 
-/* -----------------------------
-   VOICE INPUT
------------------------------- */
-
 function startVoice() {
 
     const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
+
         alert("Voice recognition not supported");
+
         return;
     }
 
     const recognition = new SpeechRecognition();
+
     recognition.lang = "en-PH";
 
     recognition.start();
 
     recognition.onresult = (e) => {
+
         document.getElementById("command").value =
             e.results[0][0].transcript;
 
@@ -180,28 +203,21 @@ function startVoice() {
     };
 }
 
-/* -----------------------------
-   DASHBOARD SUMMARY
------------------------------- */
-
 async function loadDashboardSummary() {
 
-    const res = await fetch(API + "/summary");
-    const resData = await res.json();
-
-    document.getElementById("dashboardSummary").innerHTML = "";
+    document.getElementById("dashboardSummary")
+        .innerHTML = "";
 }
-
-/* -----------------------------
-   INVENTORY
------------------------------- */
 
 async function loadProducts() {
 
     const res = await fetch(API + "/products");
+
     const data = await res.json();
 
-    const table = document.getElementById("productTable");
+    const table =
+        document.getElementById("productTable");
+
     table.innerHTML = "";
 
     (data.data || []).forEach(p => {
@@ -211,25 +227,34 @@ async function loadProducts() {
                 <td>${p.name}</td>
                 <td>₱${p.price}</td>
                 <td>${p.stock}</td>
+
                 <td>
-                    <button onclick="openEdit(${p.id}, '${p.name}', ${p.price}, ${p.stock})">Edit</button>
-                    <button onclick="deleteProduct(${p.id})">Delete</button>
+                    <button onclick="openEdit(${p.id}, '${p.name}', ${p.price}, ${p.stock})">
+                        Edit
+                    </button>
+
+                    <button onclick="deleteProduct(${p.id})">
+                        Delete
+                    </button>
+
+                    <button onclick="addToCart('${p.name}', 1)">
+                        Add To Cart
+                    </button>
                 </td>
             </tr>
         `;
     });
 }
 
-/* -----------------------------
-   SALES
------------------------------- */
-
 async function loadSales() {
 
     const res = await fetch(API + "/sales");
+
     const data = await res.json();
 
-    const box = document.getElementById("salesList");
+    const box =
+        document.getElementById("salesList");
+
     box.innerHTML = "";
 
     (data.data || []).forEach(s => {
@@ -237,21 +262,21 @@ async function loadSales() {
         box.innerHTML += `
             <div class="card">
                 <b>${s.product}</b><br>
+
                 Qty: ${s.quantity}<br>
+
                 Total: ₱${s.total}<br>
+
                 <small>${s.date}</small>
             </div>
         `;
     });
 }
 
-/* -----------------------------
-   SUMMARY PAGE
------------------------------- */
-
 async function loadSummary() {
 
     const res = await fetch(API + "/summary");
+
     const resData = await res.json();
 
     const d = resData.data || {
@@ -263,7 +288,9 @@ async function loadSummary() {
 
     document.getElementById("summaryBox").innerHTML = `
         <p>📊 Total Sales: ₱${d.total_sales}</p>
+
         <p>🧾 Transactions: ${d.transactions}</p>
+
         <p>🔥 Top Product: ${d.top_product}</p>
 
         <p>⚠ Low Stock (≤10):</p>
@@ -275,15 +302,14 @@ async function loadSummary() {
     `;
 }
 
-/* -----------------------------
-   EDIT FUNCTIONS (unchanged)
------------------------------- */
-
 function openEdit(id, name, price, stock) {
 
     document.getElementById("editId").value = id;
+
     document.getElementById("editName").value = name;
+
     document.getElementById("editPrice").value = price;
+
     document.getElementById("editStock").value = stock;
 
     document.getElementById("editPanel")
@@ -291,12 +317,10 @@ function openEdit(id, name, price, stock) {
 }
 
 function closeEdit() {
+
     document.getElementById("editPanel")
         .classList.remove("active");
 }
-
-loadProducts();
-loadDashboardSummary();
 
 function filterProducts() {
 
@@ -320,15 +344,29 @@ async function saveEdit() {
     try {
 
         const res = await fetch(API + "/update-product", {
+
             method: "POST",
+
             headers: {
                 "Content-Type": "application/json"
             },
+
             body: JSON.stringify({
-                id: parseInt(document.getElementById("editId").value),
-                name: document.getElementById("editName").value,
-                price: parseFloat(document.getElementById("editPrice").value),
-                stock: parseInt(document.getElementById("editStock").value)
+
+                id: parseInt(
+                    document.getElementById("editId").value
+                ),
+
+                name:
+                    document.getElementById("editName").value,
+
+                price: parseFloat(
+                    document.getElementById("editPrice").value
+                ),
+
+                stock: parseInt(
+                    document.getElementById("editStock").value
+                )
             })
         });
 
@@ -357,10 +395,13 @@ async function deleteProduct(id) {
     try {
 
         const res = await fetch(API + "/delete-product", {
+
             method: "POST",
+
             headers: {
                 "Content-Type": "application/json"
             },
+
             body: JSON.stringify({ id })
         });
 
@@ -377,3 +418,177 @@ async function deleteProduct(id) {
         alert("Delete failed");
     }
 }
+
+async function addToCart(productName, quantity = 1) {
+
+    try {
+
+        const res = await fetch(API + "/products");
+
+        const data = await res.json();
+
+        const products = data.data || [];
+
+        const product = products.find(
+            p => p.name.toLowerCase() === productName.toLowerCase()
+        );
+
+        if (!product) {
+
+            alert("Product not found");
+
+            return;
+        }
+
+        const existing = cart.find(
+            item =>
+                item.name.toLowerCase() ===
+                product.name.toLowerCase()
+        );
+
+        if (existing) {
+
+            existing.quantity += quantity;
+        }
+
+        else {
+
+            cart.push({
+                name: product.name,
+                price: product.price,
+                quantity: quantity
+            });
+        }
+
+        renderCart();
+
+    } catch (err) {
+
+        console.error(err);
+    }
+}
+
+function renderCart() {
+
+    let cartBox =
+        document.getElementById("cartItems");
+
+    if (!cartBox) {
+
+        const dashboard =
+            document.getElementById("dashboard");
+
+        const cartHTML = `
+            <div class="card">
+                <h2>🛒 Cart</h2>
+
+                <div id="cartItems"></div>
+
+                <h3 id="cartTotal">
+                    Total: ₱0
+                </h3>
+
+                <button onclick="checkoutCart()">
+                    Checkout
+                </button>
+            </div>
+        `;
+
+        dashboard.insertAdjacentHTML(
+            "beforeend",
+            cartHTML
+        );
+
+        cartBox =
+            document.getElementById("cartItems");
+    }
+
+    cartBox.innerHTML = "";
+
+    let total = 0;
+
+    cart.forEach((item, index) => {
+
+        const subtotal =
+            item.price * item.quantity;
+
+        total += subtotal;
+
+        cartBox.innerHTML += `
+            <div class="card">
+                <b>${item.name}</b><br>
+
+                Qty: ${item.quantity}<br>
+
+                Subtotal: ₱${subtotal}
+
+                <br><br>
+
+                <button onclick="removeFromCart(${index})">
+                    Remove
+                </button>
+            </div>
+        `;
+    });
+
+    document.getElementById("cartTotal")
+        .innerText =
+        "Total: ₱" + total;
+}
+
+function removeFromCart(index) {
+
+    cart.splice(index, 1);
+
+    renderCart();
+}
+
+async function checkoutCart() {
+
+    if (cart.length === 0) {
+
+        alert("Cart is empty");
+
+        return;
+    }
+
+    try {
+
+        for (const item of cart) {
+
+            await fetch(API + "/process-command", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    command:
+                        `sell ${item.quantity} ${item.name}`
+                })
+            });
+        }
+
+        alert("Checkout successful!");
+
+        cart = [];
+
+        renderCart();
+
+        loadProducts();
+        loadSales();
+        loadSummary();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Checkout failed");
+    }
+}
+
+loadProducts();
+
+loadDashboardSummary();
