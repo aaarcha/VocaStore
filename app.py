@@ -1,112 +1,32 @@
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 from db import get_connection
+from werkzeug.utils import secure_filename
 from backend.services.command_engine import handle_command
 from backend.services.analytics_service import get_summary
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
-
-app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
+app = Flask(
+    __name__,
+    static_folder="static",
+    template_folder="templates"
+)
 CORS(app)
 
 @app.route("/")
-def serve_frontend():
-    return send_from_directory(app.static_folder, "index.html")
+def home():
+    return render_template("index.html")
 
-@app.route("/<path:path>")
-def serve_static(path):
-    file_path = os.path.join(app.static_folder, path)
-    if os.path.exists(file_path):
-        return send_from_directory(app.static_folder, path)
-    return "Not Found", 404
+@app.route("/dashboard")
+def dashboard_page():
+    return render_template("dashboard.html")
 
-@app.route("/products")
-def products():
-    conn = get_connection()
-    cur = conn.cursor()
+@app.route("/inventory")
+def inventory_page():
+    return render_template("inventory.html")
 
-    cur.execute("SELECT id, name, price, stock FROM products ORDER BY id")
-    rows = cur.fetchall()
-
-    conn.close()
-
-    return jsonify({
-        "success": True,
-        "data": [
-            {"id": r[0], "name": r[1], "price": float(r[2]), "stock": r[3]}
-            for r in rows
-        ]
-    })
-
-@app.route("/search")
-def search():
-    q = request.args.get("q", "").lower()
-
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT id, name, price, stock
-        FROM products
-        WHERE LOWER(name) LIKE %s
-        ORDER BY id
-    """, (f"%{q}%",))
-
-    rows = cur.fetchall()
-    conn.close()
-
-    return jsonify({
-        "success": True,
-        "data": [
-            {"id": r[0], "name": r[1], "price": float(r[2]), "stock": r[3]}
-            for r in rows
-        ]
-    })
-
-@app.route("/update-product", methods=["POST"])
-def update_product():
-    data = request.json
-
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("""
-        UPDATE products
-        SET name=%s, price=%s, stock=%s
-        WHERE id=%s
-    """, (data["name"], data["price"], data["stock"], data["id"]))
-
-    conn.commit()
-    conn.close()
-
-    return jsonify({"success": True, "message": "Updated successfully"})
-
-@app.route("/delete-product", methods=["POST"])
-def delete_product():
-    data = request.json
-
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("DELETE FROM products WHERE id=%s", (data["id"],))
-
-    conn.commit()
-    conn.close()
-
-    return jsonify({"success": True, "message": "Deleted successfully"})
-
-@app.route("/process-command", methods=["POST"])
-def process_command():
-    data = request.json
-    command = data.get("command", "")
-
-    result = handle_command(command, get_connection)
-    return jsonify(result)
-
-@app.route("/sales")
-def sales():
+@app.route("/api/sales")
+def api_sales():
     conn = get_connection()
     cur = conn.cursor()
 
@@ -117,7 +37,6 @@ def sales():
     """)
 
     rows = cur.fetchall()
-
     cur.close()
     conn.close()
 
@@ -134,9 +53,12 @@ def sales():
         ]
     })
 
-@app.route("/summary")
-def summary():
+@app.route("/sales")
+def sales_page():
+    return render_template("sales.html")
 
+@app.route("/api/summary")
+def api_summary():
     conn = get_connection()
     cur = conn.cursor()
 
@@ -145,7 +67,6 @@ def summary():
                COUNT(*)
         FROM sales_transactions
     """)
-
     total_sales, transactions = cur.fetchone()
 
     cur.execute("""
@@ -155,7 +76,6 @@ def summary():
         ORDER BY SUM(quantity) DESC
         LIMIT 1
     """)
-
     top = cur.fetchone()
 
     cur.execute("""
@@ -164,12 +84,11 @@ def summary():
         WHERE stock <= 10
         ORDER BY stock ASC
     """)
-
     low_stock = cur.fetchall()
 
     conn.close()
 
-    return {
+    return jsonify({
         "data": {
             "total_sales": float(total_sales or 0),
             "transactions": int(transactions or 0),
@@ -178,7 +97,115 @@ def summary():
                 {"name": r[0], "stock": r[1]} for r in low_stock
             ]
         }
-    }
+    })
+
+@app.route("/summary")
+def summary_page():
+    return render_template("summary.html")
+
+@app.route("/products")
+def products():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id, name, price, stock, image FROM products ORDER BY id")
+    rows = cur.fetchall()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "data": [
+            {"id": r[0], "name": r[1], "price": float(r[2]), "stock": r[3], "image": r[4]}
+            for r in rows
+        ]
+    })
+
+@app.route("/add-product", methods=["POST"])
+def add_product():
+    name  = request.form.get("name")
+    price = request.form.get("price")
+    stock = request.form.get("stock")
+    image = request.files.get("image")
+
+    image_path = ""
+
+    if image:
+        filename    = secure_filename(image.filename)
+        upload_folder = os.path.join("static", "assets", "images")
+        os.makedirs(upload_folder, exist_ok=True)
+        save_path   = os.path.join(upload_folder, filename)
+        image.save(save_path)
+        image_path  = f"/static/assets/images/{filename}"
+
+    conn = get_connection()
+    cur  = conn.cursor()
+    cur.execute("""
+        INSERT INTO products (name, price, stock, image)
+        VALUES (%s, %s, %s, %s)
+    """, (name, price, stock, image_path))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True})
+
+@app.route("/search")
+def search():
+    q = request.args.get("q", "").lower()
+
+    conn = get_connection()
+    cur  = conn.cursor()
+    cur.execute("""
+        SELECT id, name, price, stock, image
+        FROM products
+        WHERE LOWER(name) LIKE %s
+        ORDER BY id
+    """, (f"%{q}%",))
+
+    rows = cur.fetchall()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "data": [
+            {"id": r[0], "name": r[1], "price": float(r[2]), "stock": r[3], "image": r[4]}
+            for r in rows
+        ]
+    })
+
+@app.route("/update-product", methods=["POST"])
+def update_product():
+    data = request.json
+
+    conn = get_connection()
+    cur  = conn.cursor()
+    cur.execute("""
+        UPDATE products
+        SET name=%s, price=%s, stock=%s, image=%s
+        WHERE id=%s
+    """, (data["name"], data["price"], data["stock"], data.get("image", ""), data["id"]))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True, "message": "Updated successfully"})
+
+@app.route("/delete-product", methods=["POST"])
+def delete_product():
+    data = request.json
+
+    conn = get_connection()
+    cur  = conn.cursor()
+    cur.execute("DELETE FROM products WHERE id=%s", (data["id"],))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True, "message": "Deleted successfully"})
+
+@app.route("/process-command", methods=["POST"])
+def process_command():
+    data    = request.json
+    command = data.get("command", "")
+    result  = handle_command(command, get_connection)
+    return jsonify(result)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

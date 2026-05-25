@@ -1,0 +1,40 @@
+<section class="inventory-page">
+    <div class="inventory-header">
+        <div>
+            <h1>Inventory</h1>
+            <p>Manage your products and stock levels</p>
+        </div>
+
+        <div class="inventory-actions">
+            <div class="inventory-search">
+                <input type="text" id="searchInput" placeholder="Search products...">
+            </div>
+
+            <button id="showAddFormBtn" class="add-product-btn">
+                + Add Product
+            </button>
+        </div>
+    </div>
+
+    <div id="productFormContainer" class="product-form-container hidden">
+        <div class="product-form-card">
+            <div class="form-top">
+                <h2>Add Product</h2>
+                <button id="closeFormBtn" class="close-btn">×</button>
+            </div>
+
+            <div class="product-form-grid">
+                <input type="text" id="productName" placeholder="Product Name">
+                <input type="number" id="productPrice" placeholder="Price">
+                <input type="number" id="productStock" placeholder="Stock">
+                <input type="file" id="productImage" accept="image/*">
+            </div>
+
+            <button id="saveProductBtn" class="save-btn">
+                Save Product
+            </button>
+        </div>
+    </div>
+
+    <div id="productList" class="product-grid"></div>
+</section>
