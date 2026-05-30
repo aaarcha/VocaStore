@@ -14,7 +14,7 @@ const TOP_KEYWORDS        = ["top sales","top selling","top product","pinakamabe
 const LOW_STOCK_KEYWORDS  = ["low stock","kulang","ubos","kulang stock","ubos stock","mababa","mababa stock","anong kulang","alin mababa"];
 const TREND_KEYWORDS      = ["sales trend","sales report","benta trend","benta ngayon","how much today","magkano ngayon","buod ngayong","sales summary"];
 const ANALYTICS_KEYWORDS  = ["analytics","summary","report","kita","revenue","total sales","total sale","gaano","kabuuan","buod"];
-const CHECKOUT_KEYWORDS   = ["checkout","bayad","bayaran","i-checkout","i checkout"];
+const CHECKOUT_KEYWORDS   = ["checkout","bayad","bayaran","i-checkout","i checkout","check out"];
 
 function matchesAny(text, keywords) {
     const t = normalizeInput(text);
@@ -107,6 +107,30 @@ async function sendCommand() {
     const cmd = normalizeInput(rawCmd);
 
     try {
+        // ── NAVIGATION COMMANDS ──────────────────────────────────────────────
+        const NAV_ROUTES = [
+            { page: "dashboard",       label: "Dashboard",       keywords: ["dashboard","go to dashboard","open dashboard","show dashboard","pumunta dashboard","buksan dashboard"] },
+            { page: "pos",             label: "POS Cart",        keywords: ["pos cart","go to cart","open cart","show cart","go to pos","open pos","show pos","pumunta cart","buksan cart"] },
+            { page: "inventory",       label: "Inventory",       keywords: ["inventory","go to inventory","open inventory","show inventory","pumunta inventory","buksan inventory","imbentaryo"] },
+            { page: "sales",           label: "Sales",           keywords: ["sales page","go to sales","open sales","show sales","pumunta sales","benta list","listahan ng benta"] },
+            { page: "summary",         label: "Summary",         keywords: ["summary","go to summary","open summary","show summary","pumunta summary","buod","go to buod"] },
+            { page: "voice-commands",  label: "Voice Commands",  keywords: ["voice commands","voice guide","go to voice commands","open voice commands","show voice commands","show commands","open commands"] },
+            { page: "settings",        label: "Settings",        keywords: ["settings","go to settings","open settings","show settings","pumunta settings","configuration"] }
+        ];
+
+        const matchedNav = NAV_ROUTES.find(route =>
+            route.keywords.some(kw => cmd === kw || cmd === "go to " + route.page || cmd === "open " + route.page || cmd === "show " + route.page || cmd.includes(kw))
+        );
+
+        if (matchedNav) {
+            const navMsg = `Showing ${matchedNav.label}`;
+            const responseEl2 = document.getElementById("response");
+            if (responseEl2) { responseEl2.innerText = navMsg; responseEl2.className = "response-text success"; }
+            speak(navMsg);
+            await showPage(matchedNav.page);
+            return;
+        }
+
         // ADD TO CART
         if (cmd.startsWith("add to cart") || cmd.startsWith("ilagay sa cart") || cmd.startsWith("idagdag sa cart")) {
             const cleaned = cmd
@@ -209,6 +233,11 @@ async function sendCommand() {
             responseEl.className = "response-text " + (data.type === "error" ? "error" : "success");
         }
         speak(msg);
+
+        if (data.type === "checkout") {
+            await checkoutCart();
+            return;
+        }
 
         if (data.type === "analytics") {
             if (data.subtype === "low_stock") {
