@@ -46,7 +46,8 @@
     align-items: center;
     gap: 18px;
     border: 1.5px solid #f0e4d6;
-    transition: 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    will-change: transform;
 }
 .sale-row:hover {
     border-color: #e87a2f;

@@ -80,7 +80,7 @@
     border-radius: 18px;
     padding: 22px 24px;
     border: 1.5px solid #f0e4d6;
-    transition: 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 .stat-card:hover {
     border-color: #e87a2f;
@@ -130,7 +130,7 @@
     border-radius: 18px;
     padding: 22px 24px;
     border: 1.5px solid #f0e4d6;
-    transition: 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 .summary-card:hover {
     border-color: #e87a2f;

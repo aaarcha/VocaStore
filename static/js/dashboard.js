@@ -22,6 +22,8 @@ function handleMicClick() {
     isListening = true;
     btn.classList.add("listening");
     label.textContent = "LISTENING...";
+    const responseEl2 = document.getElementById("response");
+    if (responseEl2) { responseEl2.innerText = "Listening..."; responseEl2.className = "response-text"; }
 
     const recognition = new SpeechRecognition();
     recognition.lang = "en-PH";
@@ -31,6 +33,9 @@ function handleMicClick() {
         const transcript = e.results[0][0].transcript;
         const input = document.getElementById("command");
         if (input) input.value = transcript;
+        // Show what was heard immediately, before backend responds
+        const responseEl = document.getElementById("response");
+        if (responseEl) { responseEl.innerText = `Heard: "${transcript}"`; responseEl.className = "response-text"; }
         sendCommand();
     };
 
@@ -50,6 +55,7 @@ function handleMicClick() {
 async function loadDashboardSummary() {
     try {
         const res  = await fetch("/api/summary");
+        if (!res.ok) throw new Error("Summary fetch failed");
         const data = await res.json();
         const d    = data.data || {};
 

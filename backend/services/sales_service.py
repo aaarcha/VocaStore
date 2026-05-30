@@ -1,10 +1,10 @@
-def handle_sale(db, parsed):
+def handle_sale(get_connection, parsed):
 
-    conn = db()
+    conn = get_connection()
     cur  = conn.cursor()
 
-    quantity = parsed["quantity"]
-    product  = parsed["product"]
+    quantity = int(parsed.get("quantity", 1))
+    product  = parsed.get("product", "")
 
     try:
         # 1. Exact case-insensitive match
@@ -27,8 +27,16 @@ def handle_sale(db, parsed):
 
         prod_id, prod_name, stock, price = item
 
+        # FIX: validate quantity is positive
+        if quantity <= 0:
+            return {"message": "Quantity must be greater than zero.", "type": "error"}
+
         if stock < quantity:
             return {"message": f"Not enough stock for {prod_name}. Only {stock} left.", "type": "error"}
+
+        # FIX: guard against zero-price sales
+        if float(price) <= 0:
+            return {"message": f"{prod_name} has no price set. Update the price in Inventory first.", "type": "error"}
 
         new_stock = stock - quantity
         total     = quantity * float(price)
@@ -44,6 +52,10 @@ def handle_sale(db, parsed):
             "message": f"Sold {quantity} {prod_name} for \u20b1{total:.2f}.",
             "type": "success"
         }
+
+    except Exception as e:
+        conn.rollback()
+        raise e
 
     finally:
         cur.close()

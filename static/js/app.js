@@ -43,6 +43,10 @@ function sidebarChevronRight() {
 }
 
 // ─── PAGE ROUTING ─────────────────────────────────────────────────────────────
+// FIX: removed the inventoryInitialized = false reset here.
+// The guard in inventory.js now uses a DOM-presence check instead of a
+// module-level flag, so navigating away and back correctly re-initialises
+// listeners on the fresh DOM without ever doubling them up.
 async function showPage(page) {
     const content = document.getElementById("content");
     document.querySelectorAll(".sidebar-nav button").forEach(b => b.classList.remove("active"));
@@ -61,6 +65,7 @@ async function showPage(page) {
 
     try {
         const res  = await fetch(`/${page}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const html = await res.text();
         content.innerHTML = html;
 
@@ -70,26 +75,36 @@ async function showPage(page) {
         if (page === "summary")   { loadSummary(); }
     } catch (err) {
         console.error(err);
-        content.innerHTML = `<h2>Failed to load page</h2>`;
+        content.innerHTML = `<div style="padding:32px;color:#e05500;"><h2>Failed to load page</h2><p>${err.message}</p></div>`;
     }
 }
 
 // ─── TTS ──────────────────────────────────────────────────────────────────────
 function speak(text) {
     if (!voiceEnabled) return;
-    // Cancel anything queued/speaking first — prevents silent failures
-    // after the synth was cancelled during a voice toggle
     speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(text);
     msg.lang = "en-PH";
-    // Small delay lets the cancel() flush before queuing the new utterance
     setTimeout(() => speechSynthesis.speak(msg), 120);
+}
+
+// ─── PAGE-AWARE REFRESH ───────────────────────────────────────────────────────
+let _refreshTimer = null;
+function refreshVisiblePage() {
+    clearTimeout(_refreshTimer);
+    _refreshTimer = setTimeout(() => {
+        if (document.getElementById("productList"))  fetchInventoryProducts();
+        if (document.getElementById("salesList"))    loadSales();
+        if (document.getElementById("summaryBox"))   loadSummary();
+        if (document.getElementById("todayTotal"))   loadDashboardSummary();
+    }, 350);
 }
 
 // ─── SEND COMMAND ─────────────────────────────────────────────────────────────
 async function sendCommand() {
-    const rawCmd = document.getElementById("command").value;
-    const cmd    = normalizeInput(rawCmd);
+    const rawCmd = document.getElementById("command").value.trim();
+    if (!rawCmd) return;
+    const cmd = normalizeInput(rawCmd);
 
     try {
         // ADD TO CART
@@ -120,74 +135,81 @@ async function sendCommand() {
             return;
         }
 
-        const summary = await fetch("/api/summary");
-        const resData = await summary.json();
-        const d = resData.data || {};
+        // ── ANALYTICS SHORTCUTS ──
+        const isAnalyticsCmd = matchesAny(cmd, TOP_KEYWORDS) || matchesAny(cmd, TREND_KEYWORDS) ||
+                               matchesAny(cmd, ANALYTICS_KEYWORDS) || matchesAny(cmd, LOW_STOCK_KEYWORDS);
 
-        // TOP SALES
-        if (matchesAny(cmd, TOP_KEYWORDS)) {
-            const msg = `Top selling product is ${d.top_product || "None"}`;
-            document.getElementById("response").innerText = msg;
-            speak(msg);
-            showPopup("🔥 Top Selling Product", `
-                <div class="card"><h3>${d.top_product || "None"}</h3></div>
-            `);
-            return;
-        }
+        if (isAnalyticsCmd) {
+            const summary = await fetch("/api/summary");
+            if (!summary.ok) throw new Error(`HTTP ${summary.status}`);
+            const resData = await summary.json();
+            const d = resData.data || {};
 
-        // SALES TREND
-        if (matchesAny(cmd, TREND_KEYWORDS)) {
-            const msg = "Showing sales trend";
-            document.getElementById("response").innerText = msg;
-            speak(msg);
-            showPopup("📈 Sales Trend", `
-                <div class="card"><p>Total Sales</p><h1>₱${d.total_sales || 0}</h1></div>
-                <div class="card"><p>Total Transactions</p><h1>${d.transactions || 0}</h1></div>
-            `);
-            return;
-        }
+            if (matchesAny(cmd, TOP_KEYWORDS)) {
+                const msg = `Top selling product is ${d.top_product || "None"}`;
+                document.getElementById("response").innerText = msg;
+                speak(msg);
+                showPopup("🔥 Top Selling Product", `<div class="card"><h3>${d.top_product || "None"}</h3></div>`);
+                return;
+            }
 
-        // ANALYTICS
-        if (matchesAny(cmd, ANALYTICS_KEYWORDS)) {
-            const msg = "Showing analytics";
-            document.getElementById("response").innerText = msg;
-            speak(msg);
-            showPopup("📊 Store Analytics", `
-                <div class="card"><b>Total Sales:</b><br>₱${d.total_sales || 0}</div>
-                <div class="card"><b>Transactions:</b><br>${d.transactions || 0}</div>
-                <div class="card"><b>Top Product:</b><br>${d.top_product || "None"}</div>
-            `);
-            return;
-        }
+            if (matchesAny(cmd, TREND_KEYWORDS)) {
+                const msg = "Showing sales trend";
+                document.getElementById("response").innerText = msg;
+                speak(msg);
+                showPopup("📈 Sales Trend", `
+                    <div class="card"><p>Total Sales</p><h1>₱${d.total_sales || 0}</h1></div>
+                    <div class="card"><p>Total Transactions</p><h1>${d.transactions || 0}</h1></div>
+                `);
+                return;
+            }
 
-        // LOW STOCK — check before AI so it always triggers popup
-        if (matchesAny(cmd, LOW_STOCK_KEYWORDS)) {
-            const msg = "Showing low stock items";
-            document.getElementById("response").innerText = msg;
-            speak(msg);
-            const low = d.low_stock || [];
-            showPopup("⚠️ Low Stock Products", low.length === 0
-                ? `<p class="popup-empty">All stock levels are good!</p>`
-                : low.filter(p => p.stock <= 10).map(p => `
-                    <div class="card"><b>${p.name}</b><br>Remaining: ${p.stock}</div>
-                `).join("") || `<p class="popup-empty">No low stock items</p>`
-            );
-            return;
+            if (matchesAny(cmd, LOW_STOCK_KEYWORDS)) {
+                const msg = "Showing low stock items";
+                document.getElementById("response").innerText = msg;
+                speak(msg);
+                const low = d.low_stock || [];
+                showPopup("⚠️ Low Stock Products", low.length === 0
+                    ? `<p class="popup-empty">All stock levels are good!</p>`
+                    : low.filter(p => p.stock <= 10).map(p => `
+                        <div class="card"><b>${p.name}</b><br>Remaining: ${p.stock}</div>
+                    `).join("") || `<p class="popup-empty">No low stock items</p>`
+                );
+                return;
+            }
+
+            if (matchesAny(cmd, ANALYTICS_KEYWORDS)) {
+                const msg = "Showing analytics";
+                document.getElementById("response").innerText = msg;
+                speak(msg);
+                showPopup("📊 Store Analytics", `
+                    <div class="card"><b>Total Sales:</b><br>₱${d.total_sales || 0}</div>
+                    <div class="card"><b>Transactions:</b><br>${d.transactions || 0}</div>
+                    <div class="card"><b>Top Product:</b><br>${d.top_product || "None"}</div>
+                `);
+                return;
+            }
         }
 
         // AI COMMAND FALLBACK
+        const responseEl = document.getElementById("response");
+        if (responseEl) { responseEl.innerText = "Processing..."; responseEl.className = "response-text"; }
+
         const res  = await fetch("/process-command", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ command: rawCmd })
         });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const msg  = data.message || "No response";
 
-        document.getElementById("response").innerText = msg;
+        if (responseEl) {
+            responseEl.innerText = msg;
+            responseEl.className = "response-text " + (data.type === "error" ? "error" : "success");
+        }
         speak(msg);
 
-        // Show popup based on AI response type
         if (data.type === "analytics") {
             if (data.subtype === "low_stock") {
                 showPopup("⚠️ Low Stock Products", (data.data || []).map(p => `
@@ -195,11 +217,11 @@ async function sendCommand() {
                 `).join("") || `<p class="popup-empty">No low stock items</p>`);
             } else if (data.subtype === "top_products") {
                 showPopup("🔥 Top Selling Products", (data.data || []).map((p, i) => `
-                    <div class="card"><b>#${i+1} ${p.product}</b><br>Sold: ${p.sold} &nbsp;·&nbsp; ₱${p.revenue.toFixed(2)}</div>
+                    <div class="card"><b>#${i+1} ${p.product}</b><br>Sold: ${p.sold} &nbsp;·&nbsp; ₱${Number(p.revenue).toFixed(2)}</div>
                 `).join(""));
             } else if (data.subtype === "trend") {
                 showPopup("📈 Sales Trend (Last 7 Days)", (data.data || []).map(r => `
-                    <div class="card"><b>${r.date}</b><br>₱${r.sales.toFixed(2)} · ${r.count} txn</div>
+                    <div class="card"><b>${r.date}</b><br>₱${Number(r.sales).toFixed(2)} · ${r.count} txn</div>
                 `).join(""));
             } else if (data.subtype === "summary") {
                 const sd = data.data || {};
@@ -212,16 +234,12 @@ async function sendCommand() {
             }
         }
 
-        setTimeout(() => {
-            loadProducts();
-            loadSales();
-            loadSummary();
-            loadDashboardSummary();
-        }, 300);
+        refreshVisiblePage();
 
     } catch (err) {
         console.error(err);
-        document.getElementById("response").innerText = "Server error";
+        const rEl = document.getElementById("response");
+        if (rEl) { rEl.innerText = "Server error. Please try again."; rEl.className = "response-text error"; }
     }
 }
 
@@ -230,14 +248,17 @@ function showPopup(title, bodyHtml) {
     const overlay = document.getElementById("popupOverlay");
     const titleEl = document.getElementById("popupTitle");
     const content = document.getElementById("popupContent");
+    if (!overlay || !content) return;
     if (titleEl) titleEl.textContent = title;
     content.innerHTML = bodyHtml;
     overlay.classList.remove("hidden");
+    overlay.style.display = "";
 }
 
 function closePopup(event) {
     if (!event || event.target.id === "popupOverlay" || event.target.classList.contains("close-btn")) {
-        document.getElementById("popupOverlay").classList.add("hidden");
+        const overlay = document.getElementById("popupOverlay");
+        if (overlay) overlay.classList.add("hidden");
     }
 }
 
@@ -252,11 +273,13 @@ function startVoice() {
         document.getElementById("command").value = e.results[0][0].transcript;
         sendCommand();
     };
+    recognition.onerror = (e) => {
+        console.error("Speech recognition error:", e.error);
+    };
 }
 
 // ─── FUZZY PRODUCT MATCH ─────────────────────────────────────────────────────
 function fuzzyScore(a, b) {
-    // simple character overlap score
     a = a.toLowerCase(); b = b.toLowerCase();
     if (a === b) return 1;
     let matches = 0;
@@ -273,26 +296,23 @@ async function addToCart(productName, quantity = 1) {
     const responseEl = document.getElementById("response");
     try {
         const res  = await fetch("/products");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const products = data.data || [];
         const search = normalizeInput(productName);
 
-        // 1. Exact match
         let product = products.find(p => p.name.toLowerCase() === search);
 
-        // 2. Starts-with (shortest wins)
         if (!product) {
             const matches = products.filter(p => p.name.toLowerCase().startsWith(search));
             if (matches.length) { matches.sort((a,b) => a.name.length - b.name.length); product = matches[0]; }
         }
 
-        // 3. Contains (5+ chars, shortest wins)
         if (!product && search.length >= 3) {
             const matches = products.filter(p => p.name.toLowerCase().includes(search));
             if (matches.length) { matches.sort((a,b) => a.name.length - b.name.length); product = matches[0]; }
         }
 
-        // 4. Fuzzy — must score > 0.55 to avoid wrong guesses
         if (!product) {
             let best = null, bestScore = 0.55;
             for (const p of products) {
@@ -373,6 +393,7 @@ function renderPosPage() {
 }
 
 function changeQty(index, delta) {
+    if (!cart[index]) return;
     cart[index].quantity += delta;
     if (cart[index].quantity <= 0) cart.splice(index, 1);
     renderCart(); renderDashCart();
@@ -397,23 +418,28 @@ function renderCart() {
 // ─── CHECKOUT ────────────────────────────────────────────────────────────────
 async function checkoutCart() {
     if (cart.length === 0) { alert("Cart is empty"); return; }
+    // FIX: sequential checkout to avoid DB race conditions on stock updates
     try {
         for (const item of cart) {
-            await fetch("/process-command", {
+            const res = await fetch("/process-command", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ command: `benta ${item.quantity} ${item.name}` })
             });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (data.type === "error") throw new Error(data.message);
         }
         const successMsg = "Checkout successful! Thank you!";
-        document.getElementById("response") && (document.getElementById("response").innerText = successMsg);
+        const respEl = document.getElementById("response");
+        if (respEl) respEl.innerText = successMsg;
         speak(successMsg);
         cart = [];
         renderCart(); renderDashCart();
-        setTimeout(() => { loadProducts(); loadSales(); loadSummary(); loadDashboardSummary(); }, 300);
+        refreshVisiblePage();
     } catch (err) {
         console.error(err);
-        alert("Checkout failed");
+        alert("Checkout failed: " + err.message);
     }
 }
 
@@ -457,6 +483,7 @@ function renderDashCart() {
 async function loadDashboardSummary() {
     try {
         const res = await fetch("/api/summary");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const resData = await res.json();
         const d = resData.data || {};
 
@@ -464,7 +491,7 @@ async function loadDashboardSummary() {
         const countEl = document.getElementById("todayCount");
         const listEl  = document.getElementById("lowStockList");
 
-        if (totalEl) totalEl.textContent = `₱${(d.total_sales || 0).toFixed(2)}`;
+        if (totalEl) totalEl.textContent = `₱${Number(d.total_sales || 0).toFixed(2)}`;
         if (countEl) countEl.textContent = `From ${d.transactions || 0} transaction${d.transactions !== 1 ? "s" : ""}`;
 
         if (listEl) {
@@ -483,70 +510,60 @@ async function loadDashboardSummary() {
         if (dashboardSummary) {
             dashboardSummary.innerHTML = `
                 <div style="display:flex;flex-direction:column;gap:16px;">
-                    <div class="card"><h3>Total Sales</h3><h1 style="margin-top:8px;">₱${d.total_sales || 0}</h1></div>
+                    <div class="card"><h3>Total Sales</h3><h1 style="margin-top:8px;">₱${Number(d.total_sales || 0).toFixed(2)}</h1></div>
                     <div class="card"><h3>Transactions</h3><h1 style="margin-top:8px;">${d.transactions || 0}</h1></div>
                     <div class="card"><h3>Top Product</h3><h1 style="margin-top:8px;">${d.top_product || "None"}</h1></div>
                 </div>`;
         }
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Dashboard summary error:", err); }
 }
 
-async function loadProducts() {
-    try {
-        const res  = await fetch("/products");
-        const data = await res.json();
-        const table = document.getElementById("productTable");
-        if (!table) return;
-        table.innerHTML = "";
-        (data.data || []).forEach(p => {
-            table.innerHTML += `
-                <tr>
-                    <td>${p.name}</td>
-                    <td>₱${p.price}</td>
-                    <td>${p.stock}</td>
-                    <td>
-                        <button onclick="openEdit(${p.id}, '${p.name}', ${p.price}, ${p.stock})">Edit</button>
-                        <button onclick="deleteProduct(${p.id})">Delete</button>
-                        <button onclick="addToCart('${p.name}', 1)">Add To Cart</button>
-                    </td>
-                </tr>`;
-        });
-    } catch (err) { console.error(err); }
+// FIX: renamed to fetchInventoryProducts to match refreshVisiblePage() call
+async function fetchInventoryProducts() {
+    if (typeof window._fetchInventoryProducts === "function") {
+        window._fetchInventoryProducts();
+    }
 }
 
 async function loadSales() {
     try {
         const res  = await fetch("/api/sales");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const box  = document.getElementById("salesList");
         if (!box) return;
+        if ((data.data || []).length === 0) {
+            box.innerHTML = `<div class="card" style="text-align:center;color:#aaa;">No sales recorded yet.</div>`;
+            return;
+        }
         box.innerHTML = "";
         (data.data || []).forEach(s => {
             box.innerHTML += `
                 <div class="card">
                     <b>${s.product}</b><br>
                     Qty: ${s.quantity}<br>
-                    Total: ₱${s.total}<br>
+                    Total: ₱${Number(s.total).toFixed(2)}<br>
                     <small>${s.date}</small>
                 </div>`;
         });
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("loadSales error:", err); }
 }
 
 async function loadSummary() {
     try {
         const res     = await fetch("/api/summary");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const resData = await res.json();
         const d = resData.data || { total_sales: 0, transactions: 0, top_product: "None", low_stock: [] };
         const summaryBox = document.getElementById("summaryBox");
         if (!summaryBox) return;
         summaryBox.innerHTML = `
-            <p>📊 Total Sales: ₱${d.total_sales}</p>
+            <p>📊 Total Sales: ₱${Number(d.total_sales || 0).toFixed(2)}</p>
             <p>🧾 Transactions: ${d.transactions}</p>
-            <p>🔥 Top Product: ${d.top_product}</p>
+            <p>🔥 Top Product: ${d.top_product || "None"}</p>
             <p>⚠ Low Stock (≤10):</p>
             ${(d.low_stock || []).filter(p => p.stock <= 10).map(p => `<p>- ${p.name} (${p.stock})</p>`).join("")}`;
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("loadSummary error:", err); }
 }
 
 async function deleteProduct(id) {
@@ -557,9 +574,10 @@ async function deleteProduct(id) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id })
         });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         alert(data.message || "Deleted");
-        loadProducts();
+        fetchInventoryProducts();
     } catch (err) { console.error(err); alert("Delete failed"); }
 }
 
@@ -719,7 +737,7 @@ function renderVoiceGuidePage() {
 
         <div class="vg-tip">
             <span class="vg-tip-icon">💡</span>
-            <span><b>Tip:</b> 
+            <span><b>Tip:</b>
             Kung walang presyo (₱0) ang produkto, hindi pwedeng ibenta. Mag-set muna ng presyo sa Imbentaryo.<br><br>
             The above products is just an example. You can use any product name in your commands as long as it exists in your inventory.
             </span>

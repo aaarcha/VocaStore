@@ -119,15 +119,7 @@ def parse_command(command: str):
     ]
 
     if product_words:
-        raw_lower     = " ".join(product_words)
-        orig_lower    = original.lower()
-        norm_original = normalize_numbers(orig_lower).replace("naka benta", "nakabenta")
-        try:
-            start    = norm_original.index(raw_lower)
-            raw_name = original[start:start + len(raw_lower)].strip()
-        except ValueError:
-            raw_name = raw_lower
-
-        result["product"] = to_proper_case(raw_name)
+        raw_lower = " ".join(product_words)
+        result["product"] = to_proper_case(raw_lower)
 
     return result

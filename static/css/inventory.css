@@ -92,14 +92,14 @@
 .form-top h2 { 
     font-size: 1.3rem; color: #1a0a00; font-weight: 800; 
 }
-.form-top .close-btn {
+.form-close-btn {
     background: #f5ede4; border: none;
     font-size: 1.1rem; cursor: pointer;
     width: 32px; height: 32px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     color: #7a5030; transition: 0.2s;
 }
-.form-top .close-btn:hover { 
+.form-close-btn:hover { 
     background: #ffe0c8; color: #e87a2f; 
 }
 
@@ -145,7 +145,8 @@
     border-radius: 18px;
     padding: 16px;
     border: 1.5px solid #ede0cf;
-    transition: 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    will-change: transform;
 }
 .product-card:hover { 
     border-color: #e87a2f; box-shadow: 0 8px 24px rgba(232,122,47,0.1); 

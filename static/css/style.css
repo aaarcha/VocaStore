@@ -230,7 +230,8 @@ html, body {
     padding: 20px;
     box-shadow: 0 6px 24px rgba(0,0,0,0.06);
     border: 1px solid rgba(232,122,47,0.08);
-    transition: 0.22s;
+    transition: transform 0.22s, box-shadow 0.22s;
+    will-change: transform;
 }
 .card:hover { 
     transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.09); 
@@ -285,13 +286,13 @@ input:focus {
 .popup-overlay {
     position: fixed; inset: 0;
     background: rgba(26,10,0,0.55);
-    backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
     display: flex; justify-content: center; align-items: flex-start;
     padding: 48px 16px; z-index: 999;
     transition: opacity 0.2s;
 }
-.popup-overlay.hidden { opacity: 0; pointer-events: none; }
+.popup-overlay.hidden { display: none; }
 
 .popup {
     background: #fff;
@@ -323,8 +324,6 @@ input:focus {
     max-height: 62vh;
     overflow-y: auto;
     display: flex; flex-direction: column; gap: 10px;
-    scrollbar-width: thin;
-    scrollbar-color: #e87a2f #f5ede4;
 }
 .popup-body::-webkit-scrollbar { width: 6px; }
 .popup-body::-webkit-scrollbar-track { background: #f5ede4; border-radius: 99px; }
