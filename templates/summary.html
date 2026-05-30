@@ -1,7 +1,61 @@
 <div class="summary-page">
+    <div class="summary-header">
+        <span class="summary-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e87a2f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </span>
+        <div>
+            <h1>Buod ng Negosyo</h1>
+            <p class="summary-subtitle">Tingnan kung kumusta ang takbo ng tindahan.</p>
+        </div>
+    </div>
 
-    <h1>Summary</h1>
+    <!-- VocaStore AI message -->
+    <div class="voca-message-card" id="vocaMessage">
+        <div class="voca-avatar">✦</div>
+        <div>
+            <div class="voca-label">Sabi ni VocaStore:</div>
+            <div class="voca-text" id="vocaText">Kinukuha ang datos...</div>
+        </div>
+    </div>
 
-    <div id="summaryBox"></div>
+    <!-- Stat cards -->
+    <div class="summary-stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-today">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e87a2f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
+            <div class="stat-label">BENTA NGAYON</div>
+            <div class="stat-value" id="todaySales">₱0.00</div>
+            <div class="stat-sub" id="todayTxCount">0 transactions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-week">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e87a2f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            </div>
+            <div class="stat-label">BENTA NGAYONG LINGGO</div>
+            <div class="stat-value" id="weekSales">₱0.00</div>
+        </div>
+    </div>
 
+    <!-- Bottom cards -->
+    <div class="summary-bottom-grid">
+        <div class="summary-card">
+            <div class="summary-card-title">
+                <span class="sc-icon">⭐</span> Pinakamabenta
+            </div>
+            <div id="topProductList" class="top-product-list">
+                <p class="no-data-text">Wala pang datos ng benta.</p>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-title">
+                <span class="sc-icon restock-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e05a00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </span> Kailangan I-restock
+            </div>
+            <div id="lowStockSummary" class="low-stock-rows">
+                <p class="no-data-text">All stocks are good!</p>
+            </div>
+        </div>
+    </div>
 </div>

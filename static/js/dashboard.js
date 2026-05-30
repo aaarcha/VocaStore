@@ -2,6 +2,8 @@ let isListening = false;
 
 function toggleVoiceOutput() {
     voiceEnabled = !voiceEnabled;
+    // Cancel any stale/queued utterances so synth resets cleanly
+    speechSynthesis.cancel();
     const btn = document.getElementById("voiceToggleBtn");
     if (!btn) return;
     btn.innerHTML = voiceEnabled

@@ -1,14 +1,19 @@
 def handle_restock(get_connection, parsed):
 
     conn = get_connection()
-    cur = conn.cursor()
+    cur  = conn.cursor()
+
+    product_name = parsed["product"]
+    quantity     = parsed["quantity"]
+    price        = parsed.get("price") or 0
 
     try:
+        # Case-insensitive exact match first
         cur.execute("""
-            SELECT id FROM products
+            SELECT id, name FROM products
             WHERE LOWER(name)=LOWER(%s)
             LIMIT 1
-        """, (parsed["product"],))
+        """, (product_name,))
 
         existing = cur.fetchone()
 
@@ -17,24 +22,36 @@ def handle_restock(get_connection, parsed):
                 UPDATE products
                 SET stock = stock + %s
                 WHERE id=%s
-            """, (parsed["quantity"], existing[0]))
+            """, (quantity, existing[0]))
 
-            message = "Stock updated"
+            # Update price if one was provided
+            if price > 0:
+                cur.execute(
+                    "UPDATE products SET price=%s WHERE id=%s",
+                    (price, existing[0])
+                )
+
+            conn.commit()
+
+            return {
+                "message": f"Stock updated: {existing[1]} (+{quantity})",
+                "type": "success"
+            }
 
         else:
+            # New product — preserve original casing, use price if given
             cur.execute("""
-                INSERT INTO products (name, price, stock)
-                VALUES (%s, %s, %s)
-            """, (parsed["product"], 0, parsed["quantity"]))
+                INSERT INTO products (name, price, stock, image)
+                VALUES (%s, %s, %s, %s)
+            """, (product_name, price, quantity, ""))
 
-            message = "New product created"
+            conn.commit()
 
-        conn.commit()
-
-        return {
-            "message": f"{message}: {parsed['product']}",
-            "type": "success"
-        }
+            price_note = f" at \u20b1{price}" if price > 0 else " (set price in Inventory)"
+            return {
+                "message": f"New product added: {product_name}{price_note}",
+                "type": "success"
+            }
 
     finally:
         cur.close()
@@ -44,22 +61,37 @@ def handle_restock(get_connection, parsed):
 def handle_check(get_connection, parsed):
 
     conn = get_connection()
-    cur = conn.cursor()
+    cur  = conn.cursor()
+
+    product_name = parsed["product"]
 
     try:
+        # 1. Exact case-insensitive match
         cur.execute("""
-            SELECT stock FROM products
+            SELECT name, stock FROM products
             WHERE LOWER(name)=LOWER(%s)
             LIMIT 1
-        """, (parsed["product"],))
+        """, (product_name,))
 
         result = cur.fetchone()
 
+        # 2. Partial/contains match fallback
         if not result:
-            return {"message": "Product not found", "type": "error"}
+            cur.execute("""
+                SELECT name, stock FROM products
+                WHERE LOWER(name) LIKE LOWER(%s)
+                LIMIT 1
+            """, (f"%{product_name}%",))
+            result = cur.fetchone()
+
+        if not result:
+            return {
+                "message": f"Product '{product_name}' not found. Check the exact name in Inventory.",
+                "type": "error"
+            }
 
         return {
-            "message": f"{parsed['product']} has {result[0]} in stock",
+            "message": f"{result[0]} has {result[1]} in stock.",
             "type": "success"
         }
 

@@ -1,0 +1,107 @@
+/* ─── SALES PAGE ──────────────────────────────────────────── */
+.sales-page { padding: 4px 0; }
+
+.sales-header { margin-bottom: 28px; }
+
+.sales-title-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.sales-icon {
+    width: 52px; height: 52px;
+    background: #fff3ea;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.sales-page h1 {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #1a0a00;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+}
+
+.sales-subtitle {
+    color: #7a5030;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+/* ─── SALES LIST ─────────────────────────────────────────── */
+.sales-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sale-row {
+    background: white;
+    border-radius: 18px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    border: 1.5px solid #f0e4d6;
+    transition: 0.2s;
+}
+.sale-row:hover {
+    border-color: #e87a2f;
+    box-shadow: 0 6px 20px rgba(232,122,47,0.08);
+    transform: translateY(-2px);
+}
+
+.sale-arrow {
+    width: 42px; height: 42px;
+    background: #fff3ea;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.sale-info { flex: 1; }
+
+.sale-product {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1a0a00;
+    margin-bottom: 5px;
+}
+
+.sale-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 0.82rem;
+    color: #a07050;
+}
+
+.sale-qty {
+    background: #f5ede4;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-weight: 700;
+    color: #7a3a00;
+    font-size: 0.82rem;
+}
+
+.sale-date-icon {
+    display: flex; align-items: center; gap: 5px;
+}
+
+.sale-amount {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #e87a2f;
+    white-space: nowrap;
+}
+
+.sales-empty {
+    text-align: center;
+    color: #a07050;
+    padding: 48px 0;
+    font-size: 0.95rem;
+}
