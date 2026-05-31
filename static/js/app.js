@@ -1,5 +1,3 @@
-const API = "https://vocastore-production.up.railway.app";
-
 let cart = [];
 let voiceEnabled = true;
 let sidebarOpen = true;
@@ -89,6 +87,14 @@ function speak(text) {
     setTimeout(() => speechSynthesis.speak(msg), 120);
 }
 
+// ─── RESPONSE HELPER ─────────────────────────────────────────────────────────
+function showResponse(msg, type = "success") {
+    const el = document.getElementById("response");
+    if (!el) return;
+    el.innerText = msg;
+    el.className = "response-text " + type;
+}
+
 // ─── PAGE-AWARE REFRESH ───────────────────────────────────────────────────────
 let _refreshTimer = null;
 function refreshVisiblePage() {
@@ -114,13 +120,13 @@ async function sendCommand() {
             { page: "pos",             label: "POS Cart",        keywords: ["pos cart","go to cart","open cart","show cart","go to pos","open pos","show pos","pumunta cart","buksan cart"] },
             { page: "inventory",       label: "Inventory",       keywords: ["inventory","go to inventory","open inventory","show inventory","pumunta inventory","buksan inventory","imbentaryo"] },
             { page: "sales",           label: "Sales",           keywords: ["sales page","go to sales","open sales","show sales","pumunta sales","benta list","listahan ng benta"] },
-            { page: "summary",         label: "Summary",         keywords: ["summary","go to summary","open summary","show summary","pumunta summary","buod","go to buod"] },
+            { page: "summary",         label: "Summary",         keywords: ["go to summary","open summary","show summary","pumunta summary","go to buod"] },
             { page: "voice-commands",  label: "Voice Commands",  keywords: ["voice commands","voice guide","go to voice commands","open voice commands","show voice commands","show commands","open commands"] },
             { page: "settings",        label: "Settings",        keywords: ["settings","go to settings","open settings","show settings","pumunta settings","configuration"] }
         ];
 
         const matchedNav = NAV_ROUTES.find(route =>
-            route.keywords.some(kw => cmd === kw || cmd === "go to " + route.page || cmd === "open " + route.page || cmd === "show " + route.page || cmd.includes(kw))
+            route.keywords.some(kw => cmd === kw || cmd === "go to " + route.page || cmd === "open " + route.page || cmd === "show " + route.page || cmd.startsWith(kw + " ") || cmd.endsWith(" " + kw))
         );
 
         if (matchedNav) {
@@ -162,6 +168,7 @@ async function sendCommand() {
             } else {
                 cart = [];
                 renderCart();
+                renderDashCart();
                 showResponse("Cart cleared", "success");
                 speak("Cart cleared");
             }
@@ -247,6 +254,15 @@ async function sendCommand() {
             responseEl.className = "response-text " + (data.type === "error" ? "error" : "success");
         }
         speak(msg);
+
+        if (data.type === "clear_cart") {
+            cart = [];
+            renderCart();
+            renderDashCart();
+            showResponse("Cart cleared", "success");
+            speak("Cart cleared");
+            return;
+        }
 
         if (data.type === "checkout") {
             await checkoutCart();

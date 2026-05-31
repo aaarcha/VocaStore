@@ -20,6 +20,11 @@ def handle_error(e):
     traceback.print_exc()
     return jsonify({"success": False, "message": "Internal server error"}), 500
 
+# ── Favicon (suppress 404/500 errors) ────────────────────────────────────────
+@app.route("/favicon.ico")
+def favicon():
+    return "", 204
+
 # ── Pages ─────────────────────────────────────────────────────────────────────
 @app.route("/")
 def home():

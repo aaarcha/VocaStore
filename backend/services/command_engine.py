@@ -32,15 +32,25 @@ def handle_command(command: str, get_connection):
         "checkout", "bayad", "bayaran", "i-checkout", "i checkout",
         "processing checkout", "check out"
     ]
+    clear_cart_keywords = [
+        "clear cart", "remove cart", "empty cart",
+        "alisin cart", "burahin cart", "tanggalin cart",
+        "clear the cart", "remove all cart", "wipe cart"
+    ]
 
     def matches_any(keywords):
         return any(k in lower_cmd for k in keywords)
 
-    is_checkout  = matches_any(checkout_keywords)
+    is_checkout   = matches_any(checkout_keywords)
+    is_clear_cart = matches_any(clear_cart_keywords)
     is_low_stock = matches_any(low_stock_keywords)
     is_top       = matches_any(top_keywords)
     is_trend     = matches_any(trend_keywords)
     is_analytics = matches_any(analytics_keywords)
+
+    # ── CLEAR CART ────────────────────────────────────────────────────────
+    if is_clear_cart:
+        return {"type": "clear_cart", "message": "Cart cleared"}
 
     # ── CHECKOUT ──────────────────────────────────────────────────────────
     if is_checkout:
