@@ -15,6 +15,7 @@ const LOW_STOCK_KEYWORDS  = ["low stock","kulang","ubos","kulang stock","ubos st
 const TREND_KEYWORDS      = ["sales trend","sales report","benta trend","benta ngayon","how much today","magkano ngayon","buod ngayong","sales summary"];
 const ANALYTICS_KEYWORDS  = ["analytics","summary","report","kita","revenue","total sales","total sale","gaano","kabuuan","buod"];
 const CHECKOUT_KEYWORDS   = ["checkout","bayad","bayaran","i-checkout","i checkout","check out"];
+const CLEAR_CART_KEYWORDS = ["clear cart","remove cart","alisin cart","burahin cart","empty cart","tanggalin cart","clear the cart","remove all cart","wipe cart"];
 
 function matchesAny(text, keywords) {
     const t = normalizeInput(text);
@@ -154,6 +155,19 @@ async function sendCommand() {
         }
 
         // CHECKOUT via voice
+        if (matchesAny(cmd, CLEAR_CART_KEYWORDS)) {
+            if (cart.length === 0) {
+                showResponse("Cart is already empty", "info");
+                speak("Cart is already empty");
+            } else {
+                cart = [];
+                renderCart();
+                showResponse("Cart cleared", "success");
+                speak("Cart cleared");
+            }
+            return;
+        }
+
         if (matchesAny(cmd, CHECKOUT_KEYWORDS)) {
             await checkoutCart();
             return;
