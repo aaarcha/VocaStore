@@ -90,10 +90,10 @@ def handle_command(command: str, get_connection):
 
             if is_trend:
                 cur.execute("""
-                    SELECT DATE(created_at), SUM(total_price), COUNT(*)
+                    SELECT DATE(date), SUM(total_price), COUNT(*)
                     FROM sales_transactions
-                    GROUP BY DATE(created_at)
-                    ORDER BY DATE(created_at) DESC LIMIT 7
+                    GROUP BY DATE(date)
+                    ORDER BY DATE(date) DESC LIMIT 7
                 """)
                 rows = cur.fetchall()
                 return {
@@ -116,7 +116,7 @@ def handle_command(command: str, get_connection):
                 cur.execute("""
                     SELECT COALESCE(SUM(total_price), 0), COUNT(*)
                     FROM sales_transactions
-                    WHERE DATE(created_at) = CURRENT_DATE
+                    WHERE DATE(date) = CURRENT_DATE
                 """)
                 today_total, today_count = cur.fetchone()
 
