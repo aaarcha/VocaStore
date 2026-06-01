@@ -44,11 +44,68 @@ def reset_stock(conn):
 
 def export_sales_csv(conn):
     cur = conn.cursor()
-    # exclude id column, clean up column names
-    cur.execute("""
-        SELECT
-            st.id                          AS "Sale ID",
-            p.name                         AS "Product",
-            st.quantity                    AS "Quantity",
-            st.total_price                 AS "Total Price (PHP)",
-            TO_CHAR(st.date, 'YYYY-MM-DD HH24:MI') AS "Dat
+    cur.execute(
+        "SELECT st.id AS sale_id, p.name AS product, st.quantity, "
+        "st.total_price AS total_price_php, "
+        "TO_CHAR(st.date, 'YYYY-MM-DD HH24:MI') AS date "
+        "FROM sales_transactions st "
+        "LEFT JOIN products p ON p.id = st.product_id "
+        "ORDER BY st.date DESC"
+    )
+    rows = cur.fetchall()
+    cols = ["Sale ID", "Product", "Quantity", "Total Price (PHP)", "Date"]
+    cur.close()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(cols)
+    for row in rows:
+        writer.writerow([str(v) if v is not None else "" for v in row])
+    return output.getvalue()
+
+
+def export_products_csv(conn):
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT id AS product_id, name AS product_name, "
+        "price AS price_php, stock "
+        "FROM products "
+        "ORDER BY id"
+    )
+    rows = cur.fetchall()
+    cols = ["Product ID", "Product Name", "Price (PHP)", "Stock"]
+    cur.close()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(cols)
+    for row in rows:
+        writer.writerow([str(v) if v is not None else "" for v in row])
+    return output.getvalue()
+
+
+def backup_data(conn):
+    cur = conn.cursor()
+    cur.execute("SELECT id, name, price, stock FROM products ORDER BY id")
+    products = [
+        dict(zip([d[0] for d in cur.description], row))
+        for row in cur.fetchall()
+    ]
+    cur.execute(
+        "SELECT st.id, p.name AS product, st.quantity, "
+        "st.total_price, st.date "
+        "FROM sales_transactions st "
+        "LEFT JOIN products p ON p.id = st.product_id "
+        "ORDER BY st.date DESC"
+    )
+    sales = [
+        dict(zip([d[0] for d in cur.description], row))
+        for row in cur.fetchall()
+    ]
+    cur.execute("SELECT key, value FROM settings")
+    settings = {row[0]: row[1] for row in cur.fetchall()}
+    cur.close()
+    return {
+        "exported_at": datetime.now().isoformat(),
+        "products": products,
+        "sales_transactions": sales,
+        "settings": settings
+    }
