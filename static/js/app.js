@@ -667,12 +667,11 @@ function renderVoiceGuidePage() {
                         <span class="vg-card-title">Benta (Sale)</span>
                         <span class="vg-badge vg-badge-sale">SALE</span>
                     </div>
-                    <p class="vg-card-desc">I-record ang benta. Pwede multi-item.</p>
+                    <p class="vg-card-desc">I-record ang benta.</p>
                     <div class="vg-examples">
-                        <div class="vg-example">"Benta 1 Coke at 2 Sprite"</div>
+                        <div class="vg-example">"Benta dalawa Coke"</div>
                         <div class="vg-example">"Naka benta ako ng limang Coke"</div>
                         <div class="vg-example">"Sold 3 Lucky Me"</div>
-                        <div class="vg-example">"Bumili ng 2 Bear Brand"</div>
                     </div>
                 </div>
                 <div class="vg-card" data-tags="dagdag restock add stock">
@@ -695,8 +694,7 @@ function renderVoiceGuidePage() {
                     <p class="vg-card-desc">Itanong ang natitirang stock.</p>
                     <div class="vg-examples">
                         <div class="vg-example">"Ilan stock ng Coke"</div>
-                        <div class="vg-example">"How many Sprite left"</div>
-                        <div class="vg-example">"Tingin Bear Brand"</div>
+                        <div class="vg-example">"Stock Clover"</div>
                     </div>
                 </div>
                 <div class="vg-card" data-tags="low stock kulang ubos mababa">
@@ -722,21 +720,22 @@ function renderVoiceGuidePage() {
                     </div>
                     <p class="vg-card-desc">Magdagdag ng bagong item sa imbentaryo.</p>
                     <div class="vg-examples">
-                        <div class="vg-example">"Magdagdag ng produkto Milo 20 pesos 50 stock"</div>
-                        <div class="vg-example">"New product Skyflakes 12 pesos 30 stock"</div>
-                        <div class="vg-example">"New Marlboro Red price 15 stock 100"</div>
+                        <div class="vg-example">"Add product Piattos ten stock"</div>
+                        <div class="vg-example">"New product Skyflakes lima stock"</div>
+                        <div class="vg-example">"New Nova price twenty"</div>
                     </div>
                 </div>
                 <div class="vg-card" data-tags="add to cart cart ilagay">
                     <div class="vg-card-top">
-                        <span class="vg-card-title">Add to Cart</span>
+                        <span class="vg-card-title">Add to Cart/Clear Cart</span>
                         <span class="vg-badge vg-badge-cart">CART</span>
                     </div>
-                    <p class="vg-card-desc">Idagdag sa cart bago mag-checkout.</p>
+                    <p class="vg-card-desc">Idagdag sa cart bago mag-checkout o i-clear ang cart.</p>
                     <div class="vg-examples">
-                        <div class="vg-example">"Add to cart 2 Coke"</div>
-                        <div class="vg-example">"Add to cart Marlboro"</div>
-                        <div class="vg-example">"Ilagay sa cart 3 Sprite"</div>
+                        <div class="vg-example">"Add to cart dalawa Coke"</div>
+                        <div class="vg-example">"Ilagay sa cart tatlo Sprite"</div>
+                        <div class="vg-example">"Clear cart"</div>
+                        <div class="vg-example">"Tanggalin cart"</div>
                     </div>
                 </div>
                 <div class="vg-card" data-tags="checkout bayad bayaran">
@@ -748,7 +747,7 @@ function renderVoiceGuidePage() {
                     <div class="vg-examples">
                         <div class="vg-example">"Checkout"</div>
                         <div class="vg-example">"Bayaran na"</div>
-                        <div class="vg-example">"I-checkout"</div>
+                        <div class="vg-example">"Check out na"</div>
                     </div>
                 </div>
             </div>
@@ -760,11 +759,10 @@ function renderVoiceGuidePage() {
                         <span class="vg-card-title">Top Sales</span>
                         <span class="vg-badge vg-badge-analytics">TOP_SALES</span>
                     </div>
-                    <p class="vg-card-desc">Pinakamabentang produkto ngayon / linggo / buwan.</p>
+                    <p class="vg-card-desc">Pinakamabentang produkto.</p>
                     <div class="vg-examples">
                         <div class="vg-example">"Top sales today"</div>
-                        <div class="vg-example">"Top sales this week"</div>
-                        <div class="vg-example">"Ano pinakamabenta ngayong buwan"</div>
+                        <div class="vg-example">"Ano ang top sales?"</div>
                     </div>
                 </div>
                 <div class="vg-card" data-tags="analytics summary report revenue kita kabuuan">
