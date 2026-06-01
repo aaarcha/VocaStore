@@ -44,44 +44,11 @@ def reset_stock(conn):
 
 def export_sales_csv(conn):
     cur = conn.cursor()
-    cur.execute("SELECT * FROM sales_transactions ORDER BY id DESC")
-    rows = cur.fetchall()
-    cols = [desc[0] for desc in cur.description]
-    cur.close()
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(cols)
-    for row in rows:
-        writer.writerow([str(v) for v in row])
-    return output.getvalue()
-
-
-def export_products_csv(conn):
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM products ORDER BY id")
-    rows = cur.fetchall()
-    cols = [desc[0] for desc in cur.description]
-    cur.close()
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(cols)
-    for row in rows:
-        writer.writerow([str(v) for v in row])
-    return output.getvalue()
-
-
-def backup_data(conn):
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM products ORDER BY id")
-    products = [dict(zip([d[0] for d in cur.description], row)) for row in cur.fetchall()]
-    cur.execute("SELECT * FROM sales_transactions ORDER BY id DESC")
-    sales = [dict(zip([d[0] for d in cur.description], row)) for row in cur.fetchall()]
-    cur.execute("SELECT key, value FROM settings")
-    settings = {row[0]: row[1] for row in cur.fetchall()}
-    cur.close()
-    return {
-        "exported_at": datetime.now().isoformat(),
-        "products": products,
-        "sales_transactions": sales,
-        "settings": settings
-    }
+    # exclude id column, clean up column names
+    cur.execute("""
+        SELECT
+            st.id                          AS "Sale ID",
+            p.name                         AS "Product",
+            st.quantity                    AS "Quantity",
+            st.total_price                 AS "Total Price (PHP)",
+            TO_CHAR(st.date, 'YYYY-MM-DD HH24:MI') AS "Dat
