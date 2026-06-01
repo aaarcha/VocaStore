@@ -934,24 +934,6 @@ async function saveAllSettings() {
     }
 }
 
-    try {
-        const res  = await fetch("/api/settings", {
-            method:  "POST",
-            headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success) {
-            sShowMsg("saveMsg", "✔ Done! Settings saved.", "#27ae60");
-            sApplyTheme(theme, true);
-        } else {
-            sShowMsg("saveMsg", data.message, "#e05500");
-        }
-    } catch(e) {
-        sShowMsg("saveMsg", "Error saving settings.", "#e05500");
-    }
-}
-
 async function changePassword() {
     const current = document.getElementById("s_current_pw").value;
     const newPw   = document.getElementById("s_new_pw").value;
