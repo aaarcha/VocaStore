@@ -1,10 +1,17 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, make_response
 from flask_cors import CORS
 from db import get_connection
 from werkzeug.utils import secure_filename
 from backend.services.command_engine import handle_command
 from backend.services.analytics_service import get_summary
+from backend.services.settings_service import (
+    get_all_settings, update_many_settings,
+    clear_sales, reset_stock,
+    export_sales_csv, export_products_csv,
+    backup_data
+)
 import os
+import json
 import traceback
 
 app = Flask(
@@ -236,6 +243,91 @@ def process_command():
         return jsonify({"type": "error", "message": "Empty command"})
     result  = handle_command(command, get_connection)
     return jsonify(result)
+
+# ── Settings API ──────────────────────────────────────────────────────────────
+@app.route("/api/settings", methods=["GET"])
+def api_get_settings():
+    conn = get_connection()
+    try:
+        return jsonify({"success": True, "data": get_all_settings(conn)})
+    finally:
+        conn.close()
+
+@app.route("/api/settings", methods=["POST"])
+def api_update_settings():
+    conn = get_connection()
+    try:
+        data    = request.json
+        allowed = {
+            "store_name", "owner_name", "contact_number", "address",
+            "language", "speech_rate", "volume",
+            "low_stock_threshold", "theme"
+        }
+        filtered = {k: v for k, v in data.items() if k in allowed}
+        update_many_settings(conn, filtered)
+        return jsonify({"success": True, "message": "Settings saved"})
+    finally:
+        conn.close()
+
+@app.route("/api/settings/clear-sales", methods=["POST"])
+def api_clear_sales():
+    conn = get_connection()
+    try:
+        clear_sales(conn)
+        return jsonify({"success": True, "message": "Sales history cleared"})
+    finally:
+        conn.close()
+
+@app.route("/api/settings/reset-stock", methods=["POST"])
+def api_reset_stock():
+    conn = get_connection()
+    try:
+        reset_stock(conn)
+        return jsonify({"success": True, "message": "All stock reset to 0"})
+    finally:
+        conn.close()
+
+# ── Export & Backup API ───────────────────────────────────────────────────────
+@app.route("/api/export/sales")
+def api_export_sales():
+    conn = get_connection()
+    try:
+        csv_data = export_sales_csv(conn)
+        response = make_response(csv_data)
+        response.headers["Content-Disposition"] = "attachment; filename=sales.csv"
+        response.headers["Content-Type"] = "text/csv"
+        return response
+    finally:
+        conn.close()
+
+@app.route("/api/export/products")
+def api_export_products():
+    conn = get_connection()
+    try:
+        csv_data = export_products_csv(conn)
+        response = make_response(csv_data)
+        response.headers["Content-Disposition"] = "attachment; filename=products.csv"
+        response.headers["Content-Type"] = "text/csv"
+        return response
+    finally:
+        conn.close()
+
+@app.route("/api/backup")
+def api_backup():
+    conn = get_connection()
+    try:
+        data     = backup_data(conn)
+        response = make_response(json.dumps(data, indent=2, default=str))
+        response.headers["Content-Disposition"] = "attachment; filename=vocastore_backup.json"
+        response.headers["Content-Type"] = "application/json"
+        return response
+    finally:
+        conn.close()
+
+# ── Settings Page ─────────────────────────────────────────────────────────────
+@app.route("/settings")
+def settings_page():
+    return render_template("settings.html")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
