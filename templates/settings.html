@@ -1,0 +1,240 @@
+<div id="settingsRoot" style="padding:32px;max-width:760px;margin:0 auto;font-family:inherit;">
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+        <span style="font-size:1.3rem;">⚙️</span>
+        <h2 style="font-size:1.3rem;font-weight:800;margin:0;color:#1a1a1a;">Settings</h2>
+    </div>
+
+    <!-- STORE INFORMATION -->
+    <div class="s-card">
+        <div class="s-section-title">🏪 Store Information</div>
+        <div class="s-grid">
+            <div class="s-field">
+                <label class="s-label">Store Name</label>
+                <input id="s_store_name" class="s-input" placeholder="e.g. Juan's Store">
+            </div>
+            <div class="s-field">
+                <label class="s-label">Owner Name</label>
+                <input id="s_owner_name" class="s-input" placeholder="e.g. Juan dela Cruz">
+            </div>
+            <div class="s-field">
+                <label class="s-label">Contact Number</label>
+                <input id="s_contact_number" class="s-input" placeholder="e.g. 09XXXXXXXXX">
+            </div>
+            <div class="s-field" style="grid-column:1/-1;">
+                <label class="s-label">Address</label>
+                <input id="s_address" class="s-input" placeholder="e.g. 123 Rizal St., Manila">
+            </div>
+        </div>
+    </div>
+
+    <!-- VOICE ASSISTANT -->
+    <div class="s-card">
+        <div class="s-section-title">🎙️ Voice Assistant</div>
+        <div class="s-grid">
+            <div class="s-field">
+                <label class="s-label">Language</label>
+                <select id="s_language" class="s-input">
+                    <option value="fil-PH">Filipino (fil-PH)</option>
+                    <option value="en-PH">English PH (en-PH)</option>
+                    <option value="en-US">English US (en-US)</option>
+                </select>
+            </div>
+            <div class="s-field">
+                <label class="s-label">Speech Rate</label>
+                <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+                    <input type="range" id="s_speech_rate" min="0.5" max="2" step="0.1" value="1"
+                        style="flex:1;" oninput="document.getElementById('rateVal').textContent=parseFloat(this.value).toFixed(1)+'x'">
+                    <span id="rateVal" style="font-size:0.85rem;font-weight:700;color:#e87a2f;min-width:36px;">1.0x</span>
+                </div>
+            </div>
+            <div class="s-field">
+                <label class="s-label">Volume</label>
+                <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+                    <input type="range" id="s_volume" min="0" max="1" step="0.1" value="1"
+                        style="flex:1;" oninput="document.getElementById('volVal').textContent=Math.round(this.value*100)+'%'">
+                    <span id="volVal" style="font-size:0.85rem;font-weight:700;color:#e87a2f;min-width:36px;">100%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="s-card">
+        <div class="s-section-title">📦 Inventory</div>
+        <div class="s-field" style="max-width:300px;">
+            <label class="s-label">Low Stock Threshold</label>
+            <input id="s_low_stock" type="number" min="1" class="s-input" placeholder="e.g. 10">
+            <p style="font-size:0.78rem;color:#aaa;margin:6px 0 0;">Mag-alert kung ang stock ay mababa na sa bilang na ito.</p>
+        </div>
+    </div>
+
+    <!-- APPEARANCE -->
+    <div class="s-card">
+        <div class="s-section-title">🎨 Appearance</div>
+        <p style="font-size:0.82rem;color:#888;margin:0 0 16px;">Piliin ang theme ng VocaStore.</p>
+        <div style="display:flex;gap:12px;">
+            <button class="theme-btn active-theme" id="theme-light" onclick="selectTheme('light')" data-theme="light">
+                <span style="font-size:1.4rem;">☀️</span>
+                <span class="theme-label">Light</span>
+            </button>
+            <button class="theme-btn" id="theme-dark" onclick="selectTheme('dark')" data-theme="dark">
+                <span style="font-size:1.4rem;">🌙</span>
+                <span class="theme-label">Dark</span>
+            </button>
+            <button class="theme-btn" id="theme-system" onclick="selectTheme('system')" data-theme="system">
+                <span style="font-size:1.4rem;">💻</span>
+                <span class="theme-label">System</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ACCOUNT -->
+    <div class="s-card">
+        <div class="s-section-title">👤 Account</div>
+        <div class="s-grid">
+            <div class="s-field">
+                <label class="s-label">Current Password</label>
+                <input type="password" id="s_current_pw" class="s-input" placeholder="••••••••">
+            </div>
+            <div class="s-field">
+                <label class="s-label">New Password</label>
+                <input type="password" id="s_new_pw" class="s-input" placeholder="••••••••">
+            </div>
+            <div class="s-field">
+                <label class="s-label">Confirm New Password</label>
+                <input type="password" id="s_confirm_pw" class="s-input" placeholder="••••••••">
+            </div>
+        </div>
+        <button class="s-btn-secondary" onclick="changePassword()" style="margin-top:14px;">🔒 Change Password</button>
+        <span id="pwMsg" style="margin-left:12px;font-size:0.82rem;"></span>
+    </div>
+
+    <!-- DATA MANAGEMENT -->
+    <div class="s-card">
+        <div class="s-section-title">💾 Data Management</div>
+        <p style="font-size:0.82rem;color:#888;margin:0 0 16px;">I-download ang iyong data o gumawa ng full backup.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="/api/export/products" class="s-export-btn">📦 Export Inventory</a>
+            <a href="/api/export/sales"    class="s-export-btn">📊 Export Sales</a>
+            <a href="/api/backup"          class="s-export-btn">🗄️ Backup Data</a>
+        </div>
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f0f0f0;">
+            <p style="font-size:0.82rem;font-weight:700;color:#c0392b;margin:0 0 12px;">⚠️ Danger Zone</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button onclick="dangerAction('clear-sales')" class="s-danger-btn">🗑 Clear Sales History</button>
+                <button onclick="dangerAction('reset-stock')" class="s-danger-btn">📦 Reset All Stock to 0</button>
+            </div>
+            <span id="dangerMsg" style="display:block;margin-top:10px;font-size:0.82rem;"></span>
+        </div>
+    </div>
+
+    <!-- SAVE CHANGES -->
+    <div style="display:flex;align-items:center;gap:16px;margin-top:8px;padding:20px;background:#fff;border-radius:14px;border:1.5px solid #e87a2f;">
+        <button onclick="saveAll()" style="padding:12px 32px;background:#e87a2f;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;">💾 Save Changes</button>
+        <span id="saveMsg" style="font-size:0.85rem;"></span>
+    </div>
+
+</div>
+
+<style>
+.s-card          { background:#fff; border-radius:14px; padding:24px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+.s-section-title { font-size:1rem; font-weight:700; color:#1a1a1a; margin-bottom:18px; }
+.s-grid          { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.s-field         { display:flex; flex-direction:column; }
+.s-label         { font-size:0.8rem; font-weight:600; color:#555; margin-bottom:6px; }
+.s-input         { padding:9px 13px; border:1.5px solid #e0e0e0; border-radius:8px; font-size:0.9rem; font-family:inherit; box-sizing:border-box; width:100%; transition:border 0.2s; }
+.s-input:focus   { outline:none; border-color:#e87a2f; }
+.s-btn-secondary { padding:10px 20px; background:#f5f5f5; border:1.5px solid #ddd; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; }
+.s-export-btn    { padding:10px 18px; background:#f0f0f0; border-radius:8px; font-size:0.85rem; font-weight:600; text-decoration:none; color:#333; display:inline-block; }
+.s-export-btn:hover { background:#e5e5e5; }
+.s-danger-btn    { padding:10px 18px; background:#fff0f0; border:1.5px solid #e74c3c; color:#c0392b; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; }
+.theme-btn       { flex:1; padding:14px 10px; border:1.5px solid #e0e0e0; border-radius:10px; background:#fff; cursor:pointer; font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:6px; transition:border 0.15s; }
+.theme-label     { font-size:0.82rem; font-weight:600; color:#555; }
+.active-theme    { border-color:#e87a2f !important; background:#fff8f4 !important; }
+.active-theme .theme-label { color:#e87a2f !important; }
+@media(max-width:540px) { .s-grid { grid-template-columns:1fr; } }
+</style>
+
+<script>
+(async () => {
+    const res = await fetch("/api/settings").then(r => r.json());
+    if (!res.success) return;
+    const d = res.data;
+    setValue("s_store_name",     d.store_name);
+    setValue("s_owner_name",     d.owner_name);
+    setValue("s_contact_number", d.contact_number);
+    setValue("s_address",        d.address);
+    setValue("s_language",       d.language);
+    setValue("s_low_stock",      d.low_stock_threshold);
+    if (d.speech_rate) {
+        document.getElementById("s_speech_rate").value = d.speech_rate;
+        document.getElementById("rateVal").textContent = parseFloat(d.speech_rate).toFixed(1) + "x";
+    }
+    if (d.volume) {
+        document.getElementById("s_volume").value = d.volume;
+        document.getElementById("volVal").textContent = Math.round(d.volume * 100) + "%";
+    }
+    if (d.theme) selectTheme(d.theme, true);
+})();
+
+function setValue(id, val) {
+    const el = document.getElementById(id);
+    if (el && val !== undefined && val !== null) el.value = val;
+}
+
+function selectTheme(theme, silent) {
+    document.querySelectorAll(".theme-btn").forEach(b => b.classList.remove("active-theme"));
+    const btn = document.getElementById("theme-" + theme);
+    if (btn) btn.classList.add("active-theme");
+    if (!silent) showMsg("saveMsg", "Theme saved!", "#27ae60");
+}
+
+async function saveAll() {
+    const activeTheme = document.querySelector(".active-theme");
+    const payload = {
+        store_name:          document.getElementById("s_store_name").value.trim(),
+        owner_name:          document.getElementById("s_owner_name").value.trim(),
+        contact_number:      document.getElementById("s_contact_number").value.trim(),
+        address:             document.getElementById("s_address").value.trim(),
+        language:            document.getElementById("s_language").value,
+        speech_rate:         document.getElementById("s_speech_rate").value,
+        volume:              document.getElementById("s_volume").value,
+        low_stock_threshold: document.getElementById("s_low_stock").value.trim(),
+        theme:               activeTheme ? activeTheme.dataset.theme : "light"
+    };
+    const res  = await fetch("/api/settings", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    showMsg("saveMsg", data.message, data.success ? "#27ae60" : "#e05500");
+}
+
+async function changePassword() {
+    const current = document.getElementById("s_current_pw").value;
+    const newPw   = document.getElementById("s_new_pw").value;
+    const confirm = document.getElementById("s_confirm_pw").value;
+    if (!current || !newPw)    { showMsg("pwMsg", "Fill in all password fields.", "#e05500"); return; }
+    if (newPw !== confirm)     { showMsg("pwMsg", "Passwords do not match.", "#e05500"); return; }
+    if (newPw.length < 6)      { showMsg("pwMsg", "Min. 6 characters.", "#e05500"); return; }
+    showMsg("pwMsg", "Password change not yet connected to backend.", "#aaa");
+}
+
+async function dangerAction(action) {
+    const label = action === "clear-sales" ? "Clear ALL sales history" : "Reset ALL stock to 0";
+    if (!confirm(`⚠️ "${label}" — sigurado ka ba? Hindi na ito mababalik.`)) return;
+    const res  = await fetch(`/api/settings/${action}`, {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({})
+    });
+    const data = await res.json();
+    showMsg("dangerMsg", data.message, data.success ? "#27ae60" : "#e05500");
+}
+
+function showMsg(id, msg, color) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.style.color = color;
+    setTimeout(() => el.textContent = "", 3000);
+}
+</script>
