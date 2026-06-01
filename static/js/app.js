@@ -72,6 +72,7 @@ async function showPage(page) {
         if (page === "inventory") { initInventory(); }
         if (page === "sales")     { loadSales(); }
         if (page === "summary")   { loadSummary(); }
+        if (page === "settings")  { /* settings loads itself */ }
     } catch (err) {
         console.error(err);
         content.innerHTML = `<div style="padding:32px;color:#e05500;"><h2>Failed to load page</h2><p>${err.message}</p></div>`;
