@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template, make_response
+from flask import Flask, jsonify, request, render_template, make_response, session
 from flask_cors import CORS
 from db import get_connection
 from werkzeug.utils import secure_filename
@@ -19,6 +19,9 @@ app = Flask(
     static_folder="static",
     template_folder="templates"
 )
+
+app.secret_key = "vocastore-secret-key"
+
 CORS(app)
 
 # ── Global error handler ──────────────────────────────────────────────────────
@@ -328,6 +331,47 @@ def api_backup():
     finally:
         conn.close()
 
+@app.route("/api/login", methods=["POST"])
+def login():
+
+    data = request.json
+
+    email = data.get("email")
+    password = data.get("password")
+
+    conn = get_connection()
+
+    try:
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            SELECT id,email
+            FROM users
+            WHERE email=%s
+            AND password=%s
+            """,
+            (email,password)
+        )
+
+        user = cur.fetchone()
+
+        if not user:
+            return jsonify({
+                "success": False,
+                "message": "Invalid credentials"
+            })
+
+        session["user"] = email
+
+        return jsonify({
+            "success": True,
+            "email": email
+        })
+
+    finally:
+        conn.close()
+
 # ── Settings Page ─────────────────────────────────────────────────────────────
 @app.route("/settings")
 def settings_page():
@@ -336,3 +380,12 @@ def settings_page():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
+@app.route("/api/logout", methods=["POST"])
+def logout():
+
+    session.clear()
+
+    return jsonify({
+        "success": True
+    })
