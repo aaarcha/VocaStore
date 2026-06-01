@@ -184,7 +184,7 @@ def api_sales():
     try:
         cur = conn.cursor()
         cur.execute(
-            "SELECT product_name, quantity, total_price, date FROM sales_transactions ORDER BY id DESC"
+            "SELECT product_name, quantity, total_price, created_at FROM sales_transactions ORDER BY id DESC"
         )
         rows = cur.fetchall()
         cur.close()

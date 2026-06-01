@@ -47,9 +47,9 @@ def export_sales_csv(conn):
     cur.execute(
         "SELECT st.id AS sale_id, st.product_name AS product, st.quantity, "
         "st.total_price AS total_price_php, "
-        "TO_CHAR(st.date, 'YYYY-MM-DD HH24:MI') AS date "
+        "TO_CHAR(st.created_at, 'YYYY-MM-DD HH24:MI') AS date "
         "FROM sales_transactions st "
-        "ORDER BY st.date DESC"
+        "ORDER BY st.created_at DESC"
     )
     rows = cur.fetchall()
     cols = ["Sale ID", "Product", "Quantity", "Total Price (PHP)", "Date"]
@@ -90,9 +90,9 @@ def backup_data(conn):
     ]
     cur.execute(
         "SELECT st.id, st.product_name AS product, st.quantity, "
-        "st.total_price, st.date "
+        "st.total_price, st.created_at "
         "FROM sales_transactions st "
-        "ORDER BY st.date DESC"
+        "ORDER BY st.created_at DESC"
     )
     sales = [
         dict(zip([d[0] for d in cur.description], row))

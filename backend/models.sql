@@ -7,8 +7,8 @@ CREATE TABLE products (
 
 CREATE TABLE sales_transactions (
     id SERIAL PRIMARY KEY,
-    product_id INTEGER,
+    product_name VARCHAR(100),
     quantity INTEGER,
     total_price NUMERIC,
-    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
