@@ -888,25 +888,51 @@ function attachSettingsEvents() {
 }
 
 async function saveAllSettings() {
+    const saveBtn = document.getElementById("saveAllBtn");
     const activeTheme = document.querySelector(".theme-btn.active-theme");
-    const theme       = activeTheme ? activeTheme.dataset.theme : "light";
+    const theme = activeTheme ? activeTheme.dataset.theme : "light";
 
-    const storeName = document.getElementById("s_store_name").value.trim();
-    const lowStock  = document.getElementById("s_low_stock").value.trim();
+    const storeName = (document.getElementById("s_store_name").value || "").trim();
+    const lowStock  = (document.getElementById("s_low_stock").value  || "").trim();
 
-    if (!storeName) { sShowMsg("saveMsg", "Store name is required.", "#e05500"); return; }
+    if (!storeName) {
+        sShowMsg("saveMsg", "Store name is required.", "#e05500"); return;
+    }
     if (!lowStock || parseInt(lowStock) < 1) {
         sShowMsg("saveMsg", "Low stock threshold must be at least 1.", "#e05500"); return;
     }
 
     const payload = {
         store_name:          storeName,
-        owner_name:          document.getElementById("s_owner_name").value.trim(),
-        contact_number:      document.getElementById("s_contact_number").value.trim(),
-        address:             document.getElementById("s_address").value.trim(),
+        owner_name:          (document.getElementById("s_owner_name").value      || "").trim(),
+        contact_number:      (document.getElementById("s_contact_number").value  || "").trim(),
+        address:             (document.getElementById("s_address").value         || "").trim(),
         low_stock_threshold: lowStock,
         theme:               theme
     };
+
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Saving..."; }
+
+    try {
+        const res  = await fetch("/api/settings", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            sShowMsg("saveMsg", "✔ Done! Settings saved.", "#27ae60");
+            sApplyTheme(theme, true);
+        } else {
+            sShowMsg("saveMsg", "Error: " + data.message, "#e05500");
+        }
+    } catch(e) {
+        sShowMsg("saveMsg", "Network error. Try again.", "#e05500");
+        console.error(e);
+    } finally {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Save Changes"; }
+    }
+}
 
     try {
         const res  = await fetch("/api/settings", {

@@ -696,37 +696,86 @@ input[type=range] { accent-color: #e87a2f; }
 
 /* ─── DARK MODE ───────────────────────────────────────────── */
 body.dark-mode {
-    background: #1a1a1a;
-    color:      #f0ece6;
+    background: #121212;
+    color:      #e8e0d8;
 }
 body.dark-mode .main {
-    background: #1a1a1a;
+    background: #121212;
+}
+body.dark-mode .s-page-title {
+    color: #f0ece6;
+}
+body.dark-mode .s-page-sub {
+    color: #b0a090;
 }
 body.dark-mode .s-card {
-    background: #242424;
-    border-color: #333;
+    background:   #1e1e1e;
+    border-color: #2e2e2e;
+}
+body.dark-mode .s-section-title {
+    color: #e87a2f;
+}
+body.dark-mode .s-label {
+    color: #c0b0a0;
+}
+body.dark-mode .s-hint {
+    color: #907060;
 }
 body.dark-mode .s-input {
+    background:   #2a2a2a;
+    color:        #f0e8e0;
+    border-color: #3a3a3a;
+}
+body.dark-mode .s-input::placeholder {
+    color: #706050;
+}
+body.dark-mode .s-input:focus {
+    border-color: #e87a2f;
     background:   #2e2e2e;
-    color:        #f0ece6;
-    border-color: #444;
 }
 body.dark-mode .s-export-btn {
-    background:   #2e2e2e;
-    color:        #f0ece6;
-    border-color: #444;
+    background:   #2a2a2a;
+    color:        #e8e0d8;
+    border-color: #3a3a3a;
+}
+body.dark-mode .s-export-btn:hover {
+    border-color: #e87a2f;
+    background:   #333;
 }
 body.dark-mode .s-secondary-btn {
-    color:        #f0ece6;
-    border-color: #444;
+    color:        #e8e0d8;
+    border-color: #3a3a3a;
+}
+body.dark-mode .s-secondary-btn:hover {
+    border-color: #e87a2f;
+    background:   rgba(232,122,47,0.1);
 }
 body.dark-mode .theme-btn {
-    background:   #2e2e2e;
-    border-color: #444;
+    background:   #2a2a2a;
+    border-color: #3a3a3a;
 }
-body.dark-mode .theme-label { color: #a09080; }
-body.dark-mode .s-save-bar  { background: #242424; }
-body.dark-mode .s-page-title { color: #f0ece6; }
+body.dark-mode .theme-label {
+    color: #b0a090;
+}
+body.dark-mode .theme-btn.active-theme {
+    background:   rgba(232,122,47,0.15) !important;
+    border-color: #e87a2f !important;
+}
+body.dark-mode .theme-btn.active-theme .theme-label {
+    color: #e87a2f !important;
+}
+body.dark-mode .s-save-bar {
+    background:   #1e1e1e;
+    border-color: #e87a2f;
+}
+body.dark-mode .s-danger-btn {
+    background:   #2a1010;
+    border-color: #c0392b;
+    color:        #ff6b6b;
+}
+body.dark-mode .s-danger-btn:hover {
+    background: #3a1515;
+}
 body.dark-mode .s-section-title { color: #e87a2f; }
 
 /* ─── SETTINGS PAGE ───────────────────────────────────────── */

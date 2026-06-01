@@ -37,26 +37,30 @@ def clear_sales(conn):
 
 def reset_stock(conn):
     cur = conn.cursor()
-    cur.execute("UPDATE products SET stock=0")
+    cur.execute("UPDATE products SET stock = 0")
     conn.commit()
     cur.close()
 
 
 def export_sales_csv(conn):
     cur = conn.cursor()
+    # Use ROW_NUMBER so the export number is always sequential
     cur.execute(
-        "SELECT st.id AS sale_id, st.product_name AS product, st.quantity, "
-        "st.total_price AS total_price_php, "
-        "TO_CHAR(st.created_at, 'YYYY-MM-DD HH24:MI') AS date "
+        "SELECT "
+        "  ROW_NUMBER() OVER (ORDER BY st.date) AS no, "
+        "  COALESCE(p.name, 'Unknown')           AS product, "
+        "  st.quantity                            AS quantity, "
+        "  st.total_price                         AS total_price_php, "
+        "  TO_CHAR(st.date, 'YYYY-MM-DD HH24:MI') AS date "
         "FROM sales_transactions st "
-        "ORDER BY st.created_at DESC"
+        "LEFT JOIN products p ON p.id = st.product_id "
+        "ORDER BY st.date DESC"
     )
     rows = cur.fetchall()
-    cols = ["Sale ID", "Product", "Quantity", "Total Price (PHP)", "Date"]
     cur.close()
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(cols)
+    writer.writerow(["No.", "Product", "Quantity", "Total Price (PHP)", "Date"])
     for row in rows:
         writer.writerow([str(v) if v is not None else "" for v in row])
     return output.getvalue()
@@ -64,18 +68,21 @@ def export_sales_csv(conn):
 
 def export_products_csv(conn):
     cur = conn.cursor()
+    # Use ROW_NUMBER so numbering is always sequential even if rows were deleted
     cur.execute(
-        "SELECT id AS product_id, name AS product_name, "
-        "price AS price_php, stock "
+        "SELECT "
+        "  ROW_NUMBER() OVER (ORDER BY id) AS no, "
+        "  name                             AS product_name, "
+        "  price                            AS price_php, "
+        "  stock "
         "FROM products "
         "ORDER BY id"
     )
     rows = cur.fetchall()
-    cols = ["Product ID", "Product Name", "Price (PHP)", "Stock"]
     cur.close()
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(cols)
+    writer.writerow(["No.", "Product Name", "Price (PHP)", "Stock"])
     for row in rows:
         writer.writerow([str(v) if v is not None else "" for v in row])
     return output.getvalue()
@@ -89,10 +96,11 @@ def backup_data(conn):
         for row in cur.fetchall()
     ]
     cur.execute(
-        "SELECT st.id, st.product_name AS product, st.quantity, "
-        "st.total_price, st.created_at "
+        "SELECT st.id, COALESCE(p.name, 'Unknown') AS product, "
+        "st.quantity, st.total_price, st.date "
         "FROM sales_transactions st "
-        "ORDER BY st.created_at DESC"
+        "LEFT JOIN products p ON p.id = st.product_id "
+        "ORDER BY st.date DESC"
     )
     sales = [
         dict(zip([d[0] for d in cur.description], row))
@@ -103,7 +111,7 @@ def backup_data(conn):
     cur.close()
     return {
         "exported_at": datetime.now().isoformat(),
-        "products": products,
-        "sales_transactions": sales,
-        "settings": settings
+        "products":    products,
+        "sales":       sales,
+        "settings":    settings
     }

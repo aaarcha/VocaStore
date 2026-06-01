@@ -257,15 +257,19 @@ def api_get_settings():
 def api_update_settings():
     conn = get_connection()
     try:
-        data    = request.json
+        data = request.json
+        if not data:
+            return jsonify({"success": False, "message": "No data received"}), 400
         allowed = {
             "store_name", "owner_name", "contact_number", "address",
-            "language", "speech_rate", "volume",
             "low_stock_threshold", "theme"
         }
         filtered = {k: v for k, v in data.items() if k in allowed}
         update_many_settings(conn, filtered)
         return jsonify({"success": True, "message": "Settings saved"})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
 
