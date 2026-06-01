@@ -18,12 +18,13 @@ async function loadSummary() {
 
         let todayTotal = 0, todayCount = 0, weekTotal = 0;
         const now      = new Date();
-        const todayStr = now.toISOString().slice(0, 10);
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
         const weekAgo  = new Date(now); weekAgo.setDate(now.getDate() - 7);
 
         rows.forEach(r => {
             const rd = new Date(r.date);
-            if (rd.toISOString().slice(0, 10) === todayStr) {
+            const rdStr = `${rd.getFullYear()}-${String(rd.getMonth()+1).padStart(2,'0')}-${String(rd.getDate()).padStart(2,'0')}`;
+            if (rdStr === todayStr) {
                 todayTotal += parseFloat(r.total);
                 todayCount++;
             }

@@ -191,7 +191,7 @@ def api_sales():
         return jsonify({
             "success": True,
             "data": [
-                {"product": r[0], "quantity": r[1], "total": float(r[2]), "date": str(r[3])}
+                {"product": r[0], "quantity": r[1], "total": float(r[2]), "date": r[3].isoformat() if r[3] else None}
                 for r in rows
             ]
         })
