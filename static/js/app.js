@@ -68,11 +68,11 @@ async function showPage(page) {
         const html = await res.text();
         content.innerHTML = html;
 
-        if (page === "dashboard") { loadDashboardSummary(); renderDashCart(); }
-        if (page === "inventory") { initInventory(); }
-        if (page === "sales")     { loadSales(); }
-        if (page === "summary")   { loadSummary(); }
-        if (page === "settings")  { /* settings loads itself */ }
+        if (page === "dashboard")  { loadDashboardSummary(); renderDashCart(); }
+        if (page === "inventory")  { initInventory(); }
+        if (page === "sales")      { loadSales(); }
+        if (page === "summary")    { loadSummary(); }
+        if (page === "settings")   { initSettings(); }
     } catch (err) {
         console.error(err);
         content.innerHTML = `<div style="padding:32px;color:#e05500;"><h2>Failed to load page</h2><p>${err.message}</p></div>`;
@@ -822,3 +822,168 @@ showPage("dashboard");
         el.textContent = email || "—";
     }
 })();
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function initSettings() {
+    loadSettingsData();
+    attachSettingsEvents();
+}
+
+async function loadSettingsData() {
+    try {
+        const res = await fetch("/api/settings");
+        const r   = await res.json();
+        if (!r.success) return;
+        const d = r.data;
+        sSetVal("s_store_name",     d.store_name);
+        sSetVal("s_owner_name",     d.owner_name);
+        sSetVal("s_contact_number", d.contact_number);
+        sSetVal("s_address",        d.address);
+        sSetVal("s_low_stock",      d.low_stock_threshold);
+        sApplyTheme(d.theme || "light", true);
+    } catch(e) { console.error("Settings load error:", e); }
+}
+
+function sSetVal(id, val) {
+    const el = document.getElementById(id);
+    if (el && val !== undefined && val !== null) el.value = val;
+}
+
+function sApplyTheme(theme, silent) {
+    document.querySelectorAll(".theme-btn").forEach(b => b.classList.remove("active-theme"));
+    const btn = document.getElementById("theme-" + theme);
+    if (btn) btn.classList.add("active-theme");
+    document.body.classList.remove("dark-mode");
+    if (theme === "dark") {
+        document.body.classList.add("dark-mode");
+    } else if (theme === "system") {
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+            document.body.classList.add("dark-mode");
+    }
+    if (!silent) sShowMsg("saveMsg", "Theme applied!", "#27ae60");
+}
+
+function attachSettingsEvents() {
+    // Theme buttons
+    document.querySelectorAll(".theme-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            sApplyTheme(this.dataset.theme, false);
+        });
+    });
+
+    // Save Changes
+    const saveBtn = document.getElementById("saveAllBtn");
+    if (saveBtn) saveBtn.addEventListener("click", saveAllSettings);
+
+    // Change Password
+    const pwBtn = document.getElementById("changePwBtn");
+    if (pwBtn) pwBtn.addEventListener("click", changePassword);
+
+    // Danger buttons
+    const clearBtn = document.getElementById("clearSalesBtn");
+    if (clearBtn) clearBtn.addEventListener("click", () => sDangerAction("clear-sales"));
+
+    const resetBtn = document.getElementById("resetStockBtn");
+    if (resetBtn) resetBtn.addEventListener("click", () => sDangerAction("reset-stock"));
+}
+
+async function saveAllSettings() {
+    const activeTheme = document.querySelector(".theme-btn.active-theme");
+    const theme       = activeTheme ? activeTheme.dataset.theme : "light";
+
+    const storeName = document.getElementById("s_store_name").value.trim();
+    const lowStock  = document.getElementById("s_low_stock").value.trim();
+
+    if (!storeName) { sShowMsg("saveMsg", "Store name is required.", "#e05500"); return; }
+    if (!lowStock || parseInt(lowStock) < 1) {
+        sShowMsg("saveMsg", "Low stock threshold must be at least 1.", "#e05500"); return;
+    }
+
+    const payload = {
+        store_name:          storeName,
+        owner_name:          document.getElementById("s_owner_name").value.trim(),
+        contact_number:      document.getElementById("s_contact_number").value.trim(),
+        address:             document.getElementById("s_address").value.trim(),
+        low_stock_threshold: lowStock,
+        theme:               theme
+    };
+
+    try {
+        const res  = await fetch("/api/settings", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            sShowMsg("saveMsg", "✔ Done! Settings saved.", "#27ae60");
+            sApplyTheme(theme, true);
+        } else {
+            sShowMsg("saveMsg", data.message, "#e05500");
+        }
+    } catch(e) {
+        sShowMsg("saveMsg", "Error saving settings.", "#e05500");
+    }
+}
+
+async function changePassword() {
+    const current = document.getElementById("s_current_pw").value;
+    const newPw   = document.getElementById("s_new_pw").value;
+    const confirm = document.getElementById("s_confirm_pw").value;
+
+    if (!current || !newPw || !confirm) {
+        sShowMsg("pwMsg", "Fill in all password fields.", "#e05500"); return;
+    }
+    if (newPw !== confirm) {
+        sShowMsg("pwMsg", "Passwords do not match.", "#e05500"); return;
+    }
+    if (newPw.length < 6) {
+        sShowMsg("pwMsg", "Min. 6 characters.", "#e05500"); return;
+    }
+
+    try {
+        const res  = await fetch("/api/profile/change-password", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ current_password: current, new_password: newPw })
+        });
+        const data = await res.json();
+        if (data.success) {
+            sShowMsg("pwMsg", "✔ Password changed!", "#27ae60");
+            document.getElementById("s_current_pw").value = "";
+            document.getElementById("s_new_pw").value     = "";
+            document.getElementById("s_confirm_pw").value = "";
+        } else {
+            sShowMsg("pwMsg", data.message, "#e05500");
+        }
+    } catch(e) {
+        sShowMsg("pwMsg", "Error changing password.", "#e05500");
+    }
+}
+
+async function sDangerAction(action) {
+    const label = action === "clear-sales"
+        ? "Clear ALL sales history"
+        : "Reset ALL stock to 0";
+    if (!confirm(`⚠️ "${label}"\n\nSigurado ka ba? Hindi na ito mababalik.`)) return;
+    try {
+        const res  = await fetch(`/api/settings/${action}`, {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({})
+        });
+        const data = await res.json();
+        sShowMsg("dangerMsg", data.success ? "✔ " + data.message : data.message,
+                 data.success ? "#27ae60" : "#e05500");
+    } catch(e) {
+        sShowMsg("dangerMsg", "Error performing action.", "#e05500");
+    }
+}
+
+function sShowMsg(id, msg, color) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = color;
+    setTimeout(() => { if (el) el.textContent = ""; }, 3500);
+}

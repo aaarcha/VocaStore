@@ -1,6 +1,9 @@
-<div class="s-page">
+<div class="s-page" id="settingsPage">
 
-    <h2 class="s-page-title">Settings</h2>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e87a2f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <h2 class="s-page-title">Settings</h2>
+    </div>
     <p class="s-page-sub">I-configure ang iyong tindahan at preferences.</p>
 
     <!-- STORE INFORMATION -->
@@ -26,37 +29,6 @@
         </div>
     </div>
 
-    <!-- VOICE ASSISTANT -->
-    <div class="s-card">
-        <div class="s-section-title">Voice Assistant</div>
-        <div class="s-grid">
-            <div class="s-field">
-                <label class="s-label">Language</label>
-                <select id="s_language" class="s-input">
-                    <option value="fil-PH">Filipino (fil-PH)</option>
-                    <option value="en-PH">English PH (en-PH)</option>
-                    <option value="en-US">English US (en-US)</option>
-                </select>
-            </div>
-            <div class="s-field">
-                <label class="s-label">Speech Rate</label>
-                <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
-                    <input type="range" id="s_speech_rate" min="0.5" max="2" step="0.1" value="1" style="flex:1;"
-                        oninput="document.getElementById('rateVal').textContent=parseFloat(this.value).toFixed(1)+'x'">
-                    <span id="rateVal" style="font-size:0.85rem;font-weight:700;color:#e87a2f;min-width:36px;">1.0x</span>
-                </div>
-            </div>
-            <div class="s-field">
-                <label class="s-label">Volume</label>
-                <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
-                    <input type="range" id="s_volume" min="0" max="1" step="0.1" value="1" style="flex:1;"
-                        oninput="document.getElementById('volVal').textContent=Math.round(this.value*100)+'%'">
-                    <span id="volVal" style="font-size:0.85rem;font-weight:700;color:#e87a2f;min-width:36px;">100%</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- INVENTORY -->
     <div class="s-card">
         <div class="s-section-title">Inventory</div>
@@ -70,17 +42,17 @@
     <!-- APPEARANCE -->
     <div class="s-card">
         <div class="s-section-title">Appearance</div>
-        <p style="font-size:0.85rem;color:var(--text-sub);margin:0 0 16px;">Piliin ang theme ng VocaStore.</p>
+        <p style="font-size:0.85rem;color:#7a5030;margin:0 0 16px;">Piliin ang theme ng VocaStore.</p>
         <div style="display:flex;gap:12px;">
-            <button class="theme-btn" id="theme-light" onclick="selectTheme('light')" data-theme="light">
+            <button class="theme-btn" id="theme-light" data-theme="light">
                 <span style="font-size:1.3rem;">☀️</span>
                 <span class="theme-label">Light</span>
             </button>
-            <button class="theme-btn" id="theme-dark" onclick="selectTheme('dark')" data-theme="dark">
+            <button class="theme-btn" id="theme-dark" data-theme="dark">
                 <span style="font-size:1.3rem;">🌙</span>
                 <span class="theme-label">Dark</span>
             </button>
-            <button class="theme-btn" id="theme-system" onclick="selectTheme('system')" data-theme="system">
+            <button class="theme-btn" id="theme-system" data-theme="system">
                 <span style="font-size:1.3rem;">💻</span>
                 <span class="theme-label">System</span>
             </button>
@@ -105,7 +77,7 @@
             </div>
         </div>
         <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
-            <button class="s-secondary-btn" onclick="changePassword()">Change Password</button>
+            <button class="s-secondary-btn" id="changePwBtn">Change Password</button>
             <span id="pwMsg" style="font-size:0.83rem;"></span>
         </div>
     </div>
@@ -113,17 +85,32 @@
     <!-- DATA MANAGEMENT -->
     <div class="s-card">
         <div class="s-section-title">Data Management</div>
-        <p style="font-size:0.85rem;color:var(--text-sub);margin:0 0 16px;">I-download ang iyong data o gumawa ng full backup.</p>
+        <p style="font-size:0.85rem;color:#7a5030;margin:0 0 16px;">I-download ang iyong data o gumawa ng full backup.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <a href="/api/export/products" class="s-export-btn">Export Inventory</a>
-            <a href="/api/export/sales"    class="s-export-btn">Export Sales</a>
-            <a href="/api/backup"          class="s-export-btn">Backup Data</a>
+            <a id="exportInventoryBtn" href="/api/export/products" class="s-export-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export Inventory
+            </a>
+            <a id="exportSalesBtn" href="/api/export/sales" class="s-export-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export Sales
+            </a>
+            <a id="backupBtn" href="/api/backup" class="s-export-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                Backup Data
+            </a>
         </div>
-        <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border);">
+        <div style="margin-top:22px;padding-top:18px;border-top:1px solid #e8ddd4;">
             <p style="font-size:0.78rem;font-weight:700;color:#c0392b;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.06em;">Danger Zone</p>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <button onclick="dangerAction('clear-sales')" class="s-danger-btn">Clear Sales History</button>
-                <button onclick="dangerAction('reset-stock')" class="s-danger-btn">Reset All Stock to 0</button>
+                <button id="clearSalesBtn" class="s-danger-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    Clear Sales History
+                </button>
+                <button id="resetStockBtn" class="s-danger-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    Reset All Stock to 0
+                </button>
             </div>
             <span id="dangerMsg" style="display:block;margin-top:10px;font-size:0.83rem;"></span>
         </div>
@@ -131,159 +118,8 @@
 
     <!-- SAVE CHANGES -->
     <div class="s-save-bar">
-        <button onclick="saveAll()" class="s-save-btn">Save Changes</button>
-        <span id="saveMsg" style="font-size:0.85rem;"></span>
+        <button id="saveAllBtn" class="s-save-btn">Save Changes</button>
+        <span id="saveMsg" style="font-size:0.85rem;font-weight:600;"></span>
     </div>
 
 </div>
-
-<script>
-// ── Load settings on page open ────────────────────────────────
-(async () => {
-    try {
-        const res = await fetch("/api/settings");
-        const r   = await res.json();
-        if (!r.success) return;
-        const d = r.data;
-        setVal("s_store_name",     d.store_name);
-        setVal("s_owner_name",     d.owner_name);
-        setVal("s_contact_number", d.contact_number);
-        setVal("s_address",        d.address);
-        setVal("s_language",       d.language);
-        setVal("s_low_stock",      d.low_stock_threshold);
-        if (d.speech_rate) {
-            document.getElementById("s_speech_rate").value = d.speech_rate;
-            document.getElementById("rateVal").textContent = parseFloat(d.speech_rate).toFixed(1) + "x";
-        }
-        if (d.volume !== undefined) {
-            document.getElementById("s_volume").value = d.volume;
-            document.getElementById("volVal").textContent = Math.round(parseFloat(d.volume) * 100) + "%";
-        }
-        applyTheme(d.theme || "light", true);
-    } catch(e) { console.error("Settings load error:", e); }
-})();
-
-function setVal(id, val) {
-    const el = document.getElementById(id);
-    if (el && val !== undefined && val !== null) el.value = val;
-}
-
-// ── Theme ─────────────────────────────────────────────────────
-function applyTheme(theme, silent) {
-    // update buttons
-    document.querySelectorAll(".theme-btn").forEach(b => b.classList.remove("active-theme"));
-    const btn = document.getElementById("theme-" + theme);
-    if (btn) btn.classList.add("active-theme");
-
-    // apply to body
-    const body = document.body;
-    body.classList.remove("dark-mode");
-
-    if (theme === "dark") {
-        body.classList.add("dark-mode");
-    } else if (theme === "system") {
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        if (prefersDark) body.classList.add("dark-mode");
-    }
-
-    if (!silent) showMsg("saveMsg", "Theme applied!", "#27ae60");
-}
-
-function selectTheme(theme) {
-    applyTheme(theme, false);
-}
-
-// ── Save All ──────────────────────────────────────────────────
-async function saveAll() {
-    const activeTheme = document.querySelector(".theme-btn.active-theme");
-    const theme       = activeTheme ? activeTheme.dataset.theme : "light";
-
-    const payload = {
-        store_name:          document.getElementById("s_store_name").value.trim(),
-        owner_name:          document.getElementById("s_owner_name").value.trim(),
-        contact_number:      document.getElementById("s_contact_number").value.trim(),
-        address:             document.getElementById("s_address").value.trim(),
-        language:            document.getElementById("s_language").value,
-        speech_rate:         document.getElementById("s_speech_rate").value,
-        volume:              document.getElementById("s_volume").value,
-        low_stock_threshold: document.getElementById("s_low_stock").value.trim(),
-        theme:               theme
-    };
-
-    // basic validation
-    if (!payload.store_name) { showMsg("saveMsg", "Store name is required.", "#e05500"); return; }
-    if (!payload.low_stock_threshold || payload.low_stock_threshold < 1) {
-        showMsg("saveMsg", "Low stock threshold must be at least 1.", "#e05500"); return;
-    }
-
-    try {
-        const res  = await fetch("/api/settings", {
-            method:  "POST",
-            headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify(payload)
-        });
-        const data = await res.json();
-        showMsg("saveMsg", data.success ? "Settings saved!" : data.message,
-                data.success ? "#27ae60" : "#e05500");
-
-        // apply theme immediately on save
-        if (data.success) applyTheme(theme, true);
-    } catch(e) {
-        showMsg("saveMsg", "Error saving settings.", "#e05500");
-    }
-}
-
-// ── Change Password ───────────────────────────────────────────
-async function changePassword() {
-    const current = document.getElementById("s_current_pw").value;
-    const newPw   = document.getElementById("s_new_pw").value;
-    const confirm = document.getElementById("s_confirm_pw").value;
-
-    if (!current || !newPw || !confirm) { showMsg("pwMsg", "Fill in all password fields.", "#e05500"); return; }
-    if (newPw !== confirm)              { showMsg("pwMsg", "Passwords do not match.", "#e05500"); return; }
-    if (newPw.length < 6)              { showMsg("pwMsg", "Min. 6 characters.", "#e05500"); return; }
-
-    try {
-        const res  = await fetch("/api/profile/change-password", {
-            method:  "POST",
-            headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify({ current_password: current, new_password: newPw })
-        });
-        const data = await res.json();
-        showMsg("pwMsg", data.message, data.success ? "#27ae60" : "#e05500");
-        if (data.success) {
-            document.getElementById("s_current_pw").value = "";
-            document.getElementById("s_new_pw").value     = "";
-            document.getElementById("s_confirm_pw").value = "";
-        }
-    } catch(e) {
-        showMsg("pwMsg", "Error changing password.", "#e05500");
-    }
-}
-
-// ── Danger Actions ────────────────────────────────────────────
-async function dangerAction(action) {
-    const label = action === "clear-sales" ? "Clear ALL sales history" : "Reset ALL stock to 0";
-    if (!confirm(`⚠️ "${label}"\n\nSigurado ka ba? Hindi na ito mababalik.`)) return;
-    try {
-        const res  = await fetch(`/api/settings/${action}`, {
-            method:  "POST",
-            headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify({})
-        });
-        const data = await res.json();
-        showMsg("dangerMsg", data.message, data.success ? "#27ae60" : "#e05500");
-    } catch(e) {
-        showMsg("dangerMsg", "Error performing action.", "#e05500");
-    }
-}
-
-// ── Helper ────────────────────────────────────────────────────
-function showMsg(id, msg, color) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = msg;
-    el.style.color = color;
-    setTimeout(() => el.textContent = "", 3500);
-}
-</script>
