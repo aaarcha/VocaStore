@@ -45,16 +45,16 @@ def reset_stock(conn):
 def export_sales_csv(conn):
     cur = conn.cursor()
     # Use ROW_NUMBER so the export number is always sequential
-   cur.execute(
-    "SELECT "
-    "  ROW_NUMBER() OVER (ORDER BY st.created_at) AS no, "
-    "  st.product_name                             AS product, "
-    "  st.quantity                                 AS quantity, "
-    "  st.total_price                              AS total_price_php, "
-    "  TO_CHAR(st.created_at, 'YYYY-MM-DD HH24:MI') AS date "
-    "FROM sales_transactions st "
-    "ORDER BY st.created_at DESC"
-)
+    cur.execute(
+        "SELECT "
+        "  ROW_NUMBER() OVER (ORDER BY st.created_at) AS no, "
+        "  st.product_name                             AS product, "
+        "  st.quantity                                 AS quantity, "
+        "  st.total_price                              AS total_price_php, "
+        "  TO_CHAR(st.created_at, 'YYYY-MM-DD HH24:MI') AS date "
+        "FROM sales_transactions st "
+        "ORDER BY st.created_at DESC"
+    )
     rows = cur.fetchall()
     cur.close()
     output = io.StringIO()
