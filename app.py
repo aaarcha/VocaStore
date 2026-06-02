@@ -109,6 +109,7 @@ def products():
     finally:
         conn.close()
 
+@app.route("/add-product", methods=["POST"])
 def add_product():
 
     if "user" not in session:
