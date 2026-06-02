@@ -995,3 +995,10 @@ function sShowMsg(id, msg, color) {
     el.style.color = color;
     setTimeout(() => { if (el) el.textContent = ""; }, 3500);
 }
+
+// ─── LOGOUT ───────────────────────────────────────────────────────────────────
+async function doLogout() {
+    if (!confirm("Log out of VocaStore?")) return;
+    await fetch('/api/logout', { method: 'POST' });
+    window.location.href = '/login';
+}

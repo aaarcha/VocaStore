@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template, make_response, session
+from flask import Flask, jsonify, request, render_template, make_response, session, redirect, url_for
 from flask_cors import CORS
 from db import get_connection
 from werkzeug.utils import secure_filename
@@ -43,24 +43,43 @@ def favicon():
     return "", 204
 
 # ── Pages ─────────────────────────────────────────────────────────────────────
+@app.route("/login")
+def login_page():
+    return render_template("login.html")
+
 @app.route("/")
 def home():
+    if "user" not in session:
+        from flask import redirect, url_for
+        return redirect(url_for("login_page"))
     return render_template("index.html")
 
 @app.route("/dashboard")
 def dashboard_page():
+    if "user" not in session:
+        from flask import redirect, url_for
+        return redirect(url_for("login_page"))
     return render_template("dashboard.html")
 
 @app.route("/inventory")
 def inventory_page():
+    if "user" not in session:
+        from flask import redirect, url_for
+        return redirect(url_for("login_page"))
     return render_template("inventory.html")
 
 @app.route("/sales")
 def sales_page():
+    if "user" not in session:
+        from flask import redirect, url_for
+        return redirect(url_for("login_page"))
     return render_template("sales.html")
 
 @app.route("/summary")
 def summary_page():
+    if "user" not in session:
+        from flask import redirect, url_for
+        return redirect(url_for("login_page"))
     return render_template("summary.html")
 
 # ── Products ──────────────────────────────────────────────────────────────────
