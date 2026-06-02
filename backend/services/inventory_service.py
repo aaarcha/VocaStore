@@ -87,3 +87,50 @@ def handle_check(get_connection, parsed):
     finally:
         cur.close()
         conn.close()
+
+
+def handle_remove(get_connection, product_query: str):
+    """
+    Remove a product from inventory by name (case-insensitive, partial match).
+    product_query is the raw search string after stripping the trigger word.
+    """
+    conn = get_connection()
+    cur  = conn.cursor()
+
+    try:
+        cur.execute(
+            "SELECT id, name FROM products WHERE LOWER(name) = LOWER(%s) LIMIT 1",
+            (product_query,)
+        )
+        row = cur.fetchone()
+
+        if not row:
+            cur.execute(
+                "SELECT id, name FROM products WHERE LOWER(name) LIKE LOWER(%s) LIMIT 1",
+                (f"%{product_query}%",)
+            )
+            row = cur.fetchone()
+
+        if not row:
+            return {
+                "message": f"Hindi mahanap ang produktong '{product_query}'. Tingnan ang Inventory para sa tamang pangalan.",
+                "type": "error"
+            }
+
+        product_id, product_name = row
+        cur.execute("DELETE FROM products WHERE id = %s", (product_id,))
+        conn.commit()
+
+        return {
+            "message": f"Na-remove na ang produktong {product_name} sa inventory.",
+            "type": "success",
+            "subtype": "remove_product"
+        }
+
+    except Exception as e:
+        conn.rollback()
+        raise e
+
+    finally:
+        cur.close()
+        conn.close()

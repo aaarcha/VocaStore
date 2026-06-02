@@ -28,6 +28,13 @@ def handle_command(command: str, get_connection):
         "kita", "revenue", "total sales", "total sale",
         "gaano", "kabuuan", "buod", "sales summary month"
     ]
+    remove_keywords = [
+        "remove product", "delete product", "tanggalin product",
+        "burahin product", "alisin product", "i-remove product",
+        "i-delete product", "remove item", "delete item",
+        "remove", "i-remove", "i-delete",
+        "tanggalin", "burahin", "alisin",
+    ]
     checkout_keywords = [
         "checkout", "bayad", "bayaran", "i-checkout", "i checkout",
         "processing checkout", "check out"
@@ -43,6 +50,10 @@ def handle_command(command: str, get_connection):
 
     is_checkout   = matches_any(checkout_keywords)
     is_clear_cart = matches_any(clear_cart_keywords)
+
+    # REMOVE must be checked before clear_cart to avoid "remove cart" collision
+    # Only treat as REMOVE PRODUCT if it's NOT a cart command
+    is_remove = (not is_clear_cart) and matches_any(remove_keywords)
     is_low_stock = matches_any(low_stock_keywords)
     is_top       = matches_any(top_keywords)
     is_trend     = matches_any(trend_keywords)
@@ -138,6 +149,26 @@ def handle_command(command: str, get_connection):
             # FIX: always close cursor and connection in analytics branch
             cur.close()
             conn.close()
+
+    # ── REMOVE PRODUCT FROM INVENTORY ────────────────────────────────────
+    if is_remove:
+        from backend.services.inventory_service import handle_remove
+        # Strip remove trigger words to extract the product name
+        remove_trigger_words = [
+            "remove product", "delete product", "tanggalin product",
+            "burahin product", "alisin product", "i-remove product",
+            "i-delete product", "remove item", "delete item",
+            "i-remove", "i-delete", "remove", "delete",
+            "tanggalin", "burahin", "alisin",
+        ]
+        product_query = lower_cmd
+        for trigger in sorted(remove_trigger_words, key=len, reverse=True):
+            product_query = product_query.replace(trigger, "").strip()
+
+        if not product_query:
+            return {"message": "Anong product ang aalisin? Subukan: 'remove Coke'", "type": "error"}
+
+        return handle_remove(get_connection, product_query)
 
     # ── AI ACTION COMMANDS ────────────────────────────────────────────────
     parsed  = parse_command(command)

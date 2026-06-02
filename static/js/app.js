@@ -270,6 +270,13 @@ async function sendCommand() {
             return;
         }
 
+        if (data.type === "success" && data.subtype === "remove_product") {
+            speak(data.message);
+            showResponse(data.message, "success");
+            fetchInventoryProducts();
+            return;
+        }
+
         if (data.type === "analytics") {
             if (data.subtype === "low_stock") {
                 showPopup("⚠️ Low Stock Products", (data.data || []).map(p => `
