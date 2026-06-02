@@ -50,41 +50,49 @@ def login_page():
 @app.route("/")
 def home():
     if "user" not in session:
-        from flask import redirect, url_for
         return redirect(url_for("login_page"))
+
     return render_template("index.html")
 
 @app.route("/dashboard")
 def dashboard_page():
     if "user" not in session:
-        from flask import redirect, url_for
         return redirect(url_for("login_page"))
+
     return render_template("dashboard.html")
 
 @app.route("/inventory")
-def inventory_page():
+def inventory():
+
     if "user" not in session:
-        from flask import redirect, url_for
         return redirect(url_for("login_page"))
+
     return render_template("inventory.html")
 
 @app.route("/sales")
 def sales_page():
     if "user" not in session:
-        from flask import redirect, url_for
         return redirect(url_for("login_page"))
+
     return render_template("sales.html")
 
 @app.route("/summary")
 def summary_page():
     if "user" not in session:
-        from flask import redirect, url_for
         return redirect(url_for("login_page"))
+
     return render_template("summary.html")
 
 # ── Products ──────────────────────────────────────────────────────────────────
 @app.route("/products")
 def products():
+
+    if "user" not in session:
+        return jsonify({
+            "success": False,
+            "message": "Login required"
+        }), 401
+
     conn = get_connection()
     try:
         cur = conn.cursor()
@@ -101,9 +109,15 @@ def products():
     finally:
         conn.close()
 
-@app.route("/add-product", methods=["POST"])
 def add_product():
-    name  = request.form.get("name", "").strip()
+
+    if "user" not in session:
+        return jsonify({
+            "success": False,
+            "message": "Login required"
+        }), 401
+
+    name = request.form.get("name", "").strip()
     price = request.form.get("price", "")
     stock = request.form.get("stock", "")
     image = request.files.get("image")
@@ -175,6 +189,13 @@ def upload_image():
 
 @app.route("/update-product", methods=["POST"])
 def update_product():
+
+    if "user" not in session:
+        return jsonify({
+            "success": False,
+            "message": "Login required"
+        }), 401
+
     data = request.json
     if not data or "id" not in data:
         return jsonify({"success": False, "message": "Missing product id"}), 400
@@ -193,6 +214,13 @@ def update_product():
 
 @app.route("/delete-product", methods=["POST"])
 def delete_product():
+
+    if "user" not in session:
+        return jsonify({
+            "success": False,
+            "message": "Login required"
+        }), 401
+
     data = request.json
     if not data or "id" not in data:
         return jsonify({"success": False, "message": "Missing product id"}), 400
@@ -209,6 +237,13 @@ def delete_product():
 # ── Sales ─────────────────────────────────────────────────────────────────────
 @app.route("/api/sales")
 def api_sales():
+
+    if "user" not in session:
+        return jsonify({
+            "success": False,
+            "message": "Login required"
+        }), 401
+
     conn = get_connection()
     try:
         cur = conn.cursor()
@@ -230,6 +265,13 @@ def api_sales():
 # ── Summary ───────────────────────────────────────────────────────────────────
 @app.route("/api/summary")
 def api_summary():
+
+    if "user" not in session:
+        return jsonify({
+            "success": False,
+            "message": "Login required"
+        }), 401
+
     conn = get_connection()
     try:
         cur = conn.cursor()
@@ -264,7 +306,14 @@ def api_summary():
 # ── Commands ──────────────────────────────────────────────────────────────────
 @app.route("/process-command", methods=["POST"])
 def process_command():
-    data    = request.json
+
+    if "user" not in session:
+        return jsonify({
+            "type": "error",
+            "message": "Login required"
+        })
+
+    data = request.json
     if not data:
         return jsonify({"type": "error", "message": "No data received"}), 400
     command = data.get("command", "").strip()
@@ -480,6 +529,10 @@ def logout():
 # ── Settings Page ─────────────────────────────────────────────────────────────
 @app.route("/settings")
 def settings_page():
+
+    if "user" not in session:
+        return redirect(url_for("login_page"))
+
     return render_template("settings.html")
 
 if __name__ == "__main__":

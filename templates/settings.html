@@ -118,8 +118,100 @@
 
     <!-- SAVE CHANGES -->
     <div class="s-save-bar">
-        <button id="saveAllBtn" class="s-save-btn">Save Changes</button>
-        <span id="saveMsg" style="font-size:0.85rem;font-weight:600;"></span>
+
+        <button id="saveAllBtn"
+                class="s-save-btn">
+            Save Changes
+        </button>
+
+        <button id="logoutBtn"
+                class="s-danger-btn">
+            Logout
+        </button>
+
+        <span id="saveMsg"></span>
+
     </div>
 
 </div>
+
+<script>
+
+document.getElementById("changePwBtn").addEventListener(
+    "click",
+    async function(){
+
+        const currentPassword =
+            document.getElementById("s_current_pw").value;
+
+        const newPassword =
+            document.getElementById("s_new_pw").value;
+
+        const confirmPassword =
+            document.getElementById("s_confirm_pw").value;
+
+        const msg =
+            document.getElementById("pwMsg");
+
+        if(newPassword !== confirmPassword){
+
+            msg.innerText =
+                "Passwords do not match";
+
+            msg.style.color = "red";
+
+            return;
+        }
+
+        const res = await fetch(
+            "/api/profile/change-password",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword
+                })
+            }
+        );
+
+        const data = await res.json();
+
+        if(data.success){
+
+            msg.innerText =
+                "Password updated successfully";
+
+            msg.style.color = "green";
+
+        }else{
+
+            msg.innerText =
+                data.message;
+
+            msg.style.color = "red";
+        }
+
+    }
+);
+
+document.getElementById("logoutBtn")
+.addEventListener(
+    "click",
+    async function(){
+
+        await fetch(
+            "/api/logout",
+            {
+                method:"POST"
+            }
+        );
+
+        window.location.href="/login";
+
+    }
+);
+
+</script>
