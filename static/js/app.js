@@ -104,7 +104,7 @@ function refreshVisiblePage() {
         if (document.getElementById("productList"))  fetchInventoryProducts();
         if (document.getElementById("salesList"))    loadSales();
         if (document.getElementById("summaryBox"))   loadSummary();
-        if (document.getElementById("todayTotal"))   loadDashboardSummary();
+        if (document.getElementById("todayTotal") || document.getElementById("lowStockList")) loadDashboardSummary();
     }, 350);
 }
 
@@ -271,7 +271,7 @@ async function sendCommand() {
         }
 
         if (data.type === "success" && data.subtype === "remove_product") {
-            fetchInventoryProducts();
+            refreshVisiblePage();
             return;
         }
 
