@@ -122,7 +122,7 @@ def handle_remove(get_connection, product_query: str):
         conn.commit()
 
         return {
-            "message": f"Na-remove na ang produktong {product_name} sa inventory.",
+            "message": f"Remove product {product_name} from inventory.",
             "type": "success",
             "subtype": "remove_product"
         }

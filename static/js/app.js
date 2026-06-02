@@ -271,8 +271,6 @@ async function sendCommand() {
         }
 
         if (data.type === "success" && data.subtype === "remove_product") {
-            speak(data.message);
-            showResponse(data.message, "success");
             fetchInventoryProducts();
             return;
         }
