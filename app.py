@@ -22,6 +22,13 @@ app = Flask(
 
 app.secret_key = "vocastore-secret-key"
 
+def require_login():
+
+    if "user" not in session:
+        return False
+
+    return True
+
 CORS(app)
 
 # ── Global error handler ──────────────────────────────────────────────────────
@@ -372,14 +379,75 @@ def login():
     finally:
         conn.close()
 
-# ── Settings Page ─────────────────────────────────────────────────────────────
-@app.route("/settings")
-def settings_page():
-    return render_template("settings.html")
+@app.route("/api/session")
+def session_status():
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    return jsonify({
+        "logged_in": "user" in session,
+        "email": session.get("user")
+    })
+
+@app.route("/api/profile/change-password", methods=["POST"])
+def change_password():
+
+    if "user" not in session:
+        return jsonify({
+            "success": False,
+            "message": "Login required"
+        })
+
+    data = request.json
+
+    current_password = data.get("current_password")
+    new_password = data.get("new_password")
+
+    conn = get_connection()
+
+    try:
+
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            SELECT id
+            FROM users
+            WHERE email=%s
+            AND password=%s
+            """,
+            (
+                session["user"],
+                current_password
+            )
+        )
+
+        user = cur.fetchone()
+
+        if not user:
+            return jsonify({
+                "success": False,
+                "message": "Current password incorrect"
+            })
+
+        cur.execute(
+            """
+            UPDATE users
+            SET password=%s
+            WHERE email=%s
+            """,
+            (
+                new_password,
+                session["user"]
+            )
+        )
+
+        conn.commit()
+
+        return jsonify({
+            "success": True
+        })
+
+    finally:
+        conn.close()
 
 @app.route("/api/logout", methods=["POST"])
 def logout():
@@ -389,3 +457,13 @@ def logout():
     return jsonify({
         "success": True
     })
+
+# ── Settings Page ─────────────────────────────────────────────────────────────
+@app.route("/settings")
+def settings_page():
+    return render_template("settings.html")
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
+
