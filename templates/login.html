@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VocaStore Login</title>
+</head>
+<body>
+
+    <h2>VocaStore Login</h2>
+
+    <input type="email" id="email" placeholder="Email">
+    <br><br>
+
+    <input type="password" id="password" placeholder="Password">
+    <br><br>
+
+    <button onclick="login()">Login</button>
+
+    <script>
+    async function login(){
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        const res = await fetch("/api/login",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                email,
+                password
+            })
+        });
+
+        const data = await res.json();
+
+        if(data.success){
+            window.location.href="/";
+        }else{
+            alert(data.message);
+        }
+    }
+    </script>
+
+</body>
+</html>
