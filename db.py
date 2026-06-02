@@ -21,5 +21,5 @@ def get_connection():
         password=os.getenv("PGPASSWORD"),
         port=os.getenv("PGPORT"),
         connect_timeout=10,
-        sslmode=os.getenv("PGSSLMODE", "prefer"),
+        sslmode=os.getenv("PGSSLMODE", "require"),
     )

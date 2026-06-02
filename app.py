@@ -37,10 +37,45 @@ def handle_error(e):
     traceback.print_exc()
     return jsonify({"success": False, "message": "Internal server error"}), 500
 
-# ── Favicon (suppress 404/500 errors) ────────────────────────────────────────
+# ── Suppress common browser auto-requests that cause 404 noise ───────────────
 @app.route("/favicon.ico")
 def favicon():
     return "", 204
+
+@app.route("/robots.txt")
+def robots():
+    return "", 204
+
+@app.route("/manifest.json")
+def manifest():
+    return "", 204
+
+@app.route("/apple-touch-icon.png")
+@app.route("/apple-touch-icon-precomposed.png")
+def apple_touch_icon():
+    return "", 204
+
+# ── Static image fallback (handles missing uploaded images gracefully) ────────
+@app.route("/static/assets/images/<path:filename>")
+def serve_product_image(filename):
+    """
+    Serve uploaded product images. On Railway (ephemeral filesystem), uploaded
+    images are lost on redeploy. Return a transparent 1px placeholder instead
+    of raising a 404/500 so the UI falls back to its onerror handler cleanly.
+    """
+    filepath = os.path.join("static", "assets", "images", filename)
+    if os.path.isfile(filepath):
+        from flask import send_from_directory
+        return send_from_directory(os.path.join("static", "assets", "images"), filename)
+    # Return a minimal transparent PNG so the browser doesn't log errors
+    import base64
+    TRANSPARENT_PNG = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+    )
+    response = make_response(TRANSPARENT_PNG)
+    response.headers["Content-Type"] = "image/png"
+    response.headers["Cache-Control"] = "no-cache"
+    return response
 
 # ── Pages ─────────────────────────────────────────────────────────────────────
 @app.route("/login")
@@ -134,7 +169,7 @@ def add_product():
     image_path = ""
     if image and image.filename:
         filename      = secure_filename(image.filename)
-        upload_folder = os.path.join("static", "assets", "images")
+        upload_folder = os.path.join(os.path.dirname(__file__), "static", "assets", "images")
         os.makedirs(upload_folder, exist_ok=True)
         save_path  = os.path.join(upload_folder, filename)
         image.save(save_path)
@@ -183,7 +218,7 @@ def upload_image():
     if not image or not image.filename:
         return jsonify({"success": False, "message": "No image provided"}), 400
     filename      = secure_filename(image.filename)
-    upload_folder = os.path.join("static", "assets", "images")
+    upload_folder = os.path.join(os.path.dirname(__file__), "static", "assets", "images")
     os.makedirs(upload_folder, exist_ok=True)
     image.save(os.path.join(upload_folder, filename))
     return jsonify({"success": True, "image": f"/static/assets/images/{filename}"})
@@ -539,4 +574,3 @@ def settings_page():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
-
