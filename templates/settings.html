@@ -76,9 +76,22 @@
                 <input type="password" id="s_confirm_pw" class="s-input" placeholder="••••••••">
             </div>
         </div>
-        <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
-            <button class="s-secondary-btn" id="changePwBtn">Change Password</button>
-            <span id="pwMsg" style="font-size:0.83rem;"></span>
+        <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+
+            <button class="s-secondary-btn"
+                    id="changePwBtn">
+                Change Password
+            </button>
+
+            <button id="logoutBtn"
+                    class="logout-btn">
+                ⏻ Logout Account
+            </button>
+
+            <span id="pwMsg"
+                style="font-size:0.83rem;">
+            </span>
+
         </div>
     </div>
 
@@ -122,11 +135,6 @@
         <button id="saveAllBtn"
                 class="s-save-btn">
             Save Changes
-        </button>
-
-        <button id="logoutBtn"
-                class="s-danger-btn">
-            Logout
         </button>
 
         <span id="saveMsg"></span>

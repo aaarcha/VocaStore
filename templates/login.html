@@ -1,27 +1,204 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>VocaStore Login</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>VocaStore Login</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI,sans-serif;
+}
+
+body{
+    background:#f6f1eb;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.login-card{
+
+    width:420px;
+
+    background:white;
+
+    border-radius:24px;
+
+    padding:40px;
+
+    box-shadow:
+    0 10px 30px rgba(0,0,0,.08);
+
+}
+
+.logo{
+
+    text-align:center;
+    margin-bottom:25px;
+
+}
+
+.logo h1{
+
+    color:#e87a2f;
+    font-size:2rem;
+
+}
+
+.logo p{
+
+    color:#777;
+    margin-top:6px;
+
+}
+
+.input-group{
+
+    margin-bottom:18px;
+
+}
+
+.input-group label{
+
+    display:block;
+    margin-bottom:8px;
+
+    color:#444;
+    font-weight:600;
+
+}
+
+.input-group input{
+
+    width:100%;
+
+    padding:14px;
+
+    border:1px solid #ddd;
+
+    border-radius:12px;
+
+    font-size:15px;
+
+}
+
+.input-group input:focus{
+
+    outline:none;
+
+    border-color:#e87a2f;
+
+}
+
+.login-btn{
+
+    width:100%;
+
+    background:#e87a2f;
+
+    color:white;
+
+    border:none;
+
+    padding:15px;
+
+    border-radius:14px;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+    font-weight:700;
+
+    margin-top:10px;
+
+}
+
+.login-btn:hover{
+
+    opacity:.92;
+
+}
+
+#errorMsg{
+
+    color:red;
+    text-align:center;
+    margin-top:15px;
+
+}
+
+</style>
+
 </head>
+
 <body>
 
-    <h2>VocaStore Login</h2>
+<div class="login-card">
 
-    <input type="email" id="email" placeholder="Email">
-    <br><br>
+    <div class="logo">
 
-    <input type="password" id="password" placeholder="Password">
-    <br><br>
+        <h1>VocaStore</h1>
 
-    <button onclick="login()">Login</button>
+        <p>Voice-Enabled Inventory System</p>
 
-    <script>
-    async function login(){
+    </div>
 
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
+    <div class="input-group">
 
-        const res = await fetch("/api/login",{
+        <label>Email</label>
+
+        <input
+            type="email"
+            id="email"
+            placeholder="admin@vocastore.com"
+        >
+
+    </div>
+
+    <div class="input-group">
+
+        <label>Password</label>
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Enter password"
+        >
+
+    </div>
+
+    <button
+        class="login-btn"
+        onclick="login()"
+    >
+        Login
+    </button>
+
+    <div id="errorMsg"></div>
+
+</div>
+
+<script>
+
+async function login(){
+
+    const email =
+        document.getElementById("email").value;
+
+    const password =
+        document.getElementById("password").value;
+
+    const res = await fetch(
+        "/api/login",
+        {
             method:"POST",
             headers:{
                 "Content-Type":"application/json"
@@ -30,17 +207,26 @@
                 email,
                 password
             })
-        });
-
-        const data = await res.json();
-
-        if(data.success){
-            window.location.href="/";
-        }else{
-            alert(data.message);
         }
+    );
+
+    const data = await res.json();
+
+    if(data.success){
+
+        window.location.href="/";
+
+    }else{
+
+        document.getElementById(
+            "errorMsg"
+        ).innerText = data.message;
+
     }
-    </script>
+
+}
+
+</script>
 
 </body>
 </html>
