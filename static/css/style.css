@@ -509,8 +509,8 @@ td button:hover {
     inset: 0;
     background: rgba(0,0,0,0.52);
     z-index: 199;
-    backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
 }
 .sidebar-overlay.active { display: block; }
 
@@ -1297,5 +1297,49 @@ html, body {
        the FAB outside handles open; the X inside handles close */
     #sidebarToggle {
         display: flex; /* keep as X / close on mobile */
+    }
+}
+
+
+/* ── Mobile: always show labels normally inside the drawer ───
+   The collapsed tooltip styles must never apply on mobile.     */
+@media (max-width: 900px) {
+    .sidebar-collapsed .sidebar-nav button .nav-label {
+        display: inline !important;
+        position: static !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        background: none !important;
+        color: #c4a98a !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        pointer-events: auto !important;
+        white-space: nowrap !important;
+    }
+    .sidebar-collapsed .sidebar-nav button .nav-label::before {
+        display: none !important;
+    }
+    .sidebar-collapsed .sidebar-nav button.active .nav-label {
+        color: #fff !important;
+    }
+    .sidebar-collapsed .sidebar-nav button {
+        justify-content: flex-start !important;
+        padding: 13px 14px !important;
+    }
+    .sidebar-collapsed .sidebar-logo-text {
+        display: inline !important;
+        position: static !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        background: none !important;
+        color: #e87a2f !important;
+        box-shadow: none !important;
+        padding: 0 !important;
     }
 }
