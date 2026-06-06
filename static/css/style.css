@@ -489,47 +489,173 @@ td button:hover {
 }
 .vg-tip-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
 
-/* ─── MOBILE ─────────────────────────────────────────────── */
-@media (max-width: 900px) {
-    .layout { flex-direction: column; }
-    .sidebar {
-        width: 100% !important; min-width: 100% !important;
-        height: auto; position: relative;
-        flex-direction: row; flex-wrap: wrap;
-        padding: 12px 14px; gap: 6px;
-    }
-    .sidebar-top { 
-        width: 100%; margin-bottom: 4px; 
-    }
-    .sidebar-nav { 
-        flex-direction: row; flex-wrap: wrap; gap: 4px; 
-    }
-    .sidebar-nav button { 
-        padding: 9px 12px; font-size: 0.82rem; 
-    }
-    .sidebar-footer { 
-        width: 100%; flex-direction: row; align-items: center; border-top: none; padding-top: 0; 
-    }
-    .main { padding: 18px; }
-    .hero-card h1 { 
-        font-size: 1.7rem; 
-    }
-    .command-box { 
-        flex-direction: column; 
-    }
-    .page-header {
-         flex-direction: column; align-items: flex-start; gap: 12px; 
-        }
-    .vg-grid { 
-        grid-template-columns: 1fr; 
-    }
-    .nav-label { 
-        display: inline; 
-    }
-    .sidebar-collapsed .nav-label { 
-        display: none; 
-    }
+/* ─── MOBILE HEADER (hidden on desktop) ──────────────── */
+.mobile-header {
+    display: none;
 }
+
+/* ─── SIDEBAR OVERLAY (mobile drawer backdrop) ───────── */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.52);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+.sidebar-overlay.active { display: block; }
+
+/* helpers */
+.desktop-only { display: flex; }
+.mobile-only  { display: none; }
+
+/* ─── TABLET / MOBILE  (≤ 900px) ─────────────────────── */
+@media (max-width: 900px) {
+
+    /* Show mobile header bar */
+    .mobile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 58px;
+        background: #1a0a00;
+        padding: 0 16px;
+        z-index: 150;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    }
+    .mobile-header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .mobile-menu-btn {
+        background: rgba(255,255,255,0.08);
+        border: none;
+        color: white;
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+    .mobile-logo {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 1.1rem; font-weight: 800; color: #e87a2f;
+    }
+
+    /* Layout stays flex row but sidebar is a fixed drawer */
+    .layout {
+        flex-direction: row;
+        padding-top: 58px; /* offset for fixed mobile header */
+    }
+
+    /* Sidebar becomes a fixed off-screen drawer */
+    .sidebar {
+        position: fixed !important;
+        top: 0; left: 0;
+        width: 260px !important;
+        min-width: 260px !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(.4,0,.2,1) !important;
+        z-index: 200;
+        overflow-y: auto;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        padding: 20px 14px !important;
+    }
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    /* On mobile, collapsed state doesn't apply */
+    .sidebar.sidebar-collapsed {
+        width: 260px !important;
+        min-width: 260px !important;
+    }
+    .sidebar-collapsed .nav-label,
+    .sidebar-collapsed .sidebar-logo-text,
+    .sidebar-collapsed .email {
+        display: inline !important;
+    }
+
+    .sidebar-nav {
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+    }
+    .sidebar-nav button {
+        padding: 13px 14px !important;
+        font-size: 0.95rem !important;
+    }
+    .sidebar-footer {
+        flex-direction: column !important;
+        border-top: 1px solid rgba(255,255,255,0.08) !important;
+        padding-top: 14px !important;
+    }
+
+    /* Main content fills full width */
+    .main {
+        width: 100% !important;
+        padding: 20px 16px 32px !important;
+        min-height: calc(100vh - 58px);
+        min-height: calc(100dvh - 58px);
+    }
+
+    /* show/hide helpers */
+    .desktop-only { display: none !important; }
+    .mobile-only  { display: flex !important; }
+
+    /* Hero adjustments */
+    .hero-card { padding: 24px 20px; }
+    .hero-card h1 { font-size: 1.6rem; }
+    .command-box { flex-direction: column; gap: 8px; }
+    .command-box input { font-size: 1rem; padding: 14px; }
+
+    /* Page headers */
+    .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+    /* Voice guide */
+    .vg-grid { grid-template-columns: 1fr; }
+    .voice-guide-header { gap: 12px; }
+    .voice-guide-header h1 { font-size: 1.6rem; }
+
+    /* Dashboard grid */
+    .dashboard-grid { grid-template-columns: 1fr; }
+
+    /* Summary grid */
+    .summary-stats-grid,
+    .summary-bottom-grid { grid-template-columns: 1fr; }
+
+    /* Popup on mobile */
+    .popup-overlay { padding: 16px; align-items: flex-end; }
+    .popup { border-radius: 20px 20px 0 0; width: 100%; max-width: 100%; margin: 0; }
+    .popup-body { max-height: 55vh; }
+
+    /* POS page */
+    .pos-page { padding: 0; }
+    .pos-cart-card { border-radius: 16px; }
+
+    /* Inventory grid */
+    .product-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    .inventory-actions { flex-direction: column; align-items: stretch; }
+    .inventory-search input { width: 100%; }
+}
+
+/* ─── SMALL MOBILE (≤ 480px) ─────────────────────────── */
+@media (max-width: 480px) {
+    .main { padding: 16px 14px 28px !important; }
+    .hero-card h1 { font-size: 1.4rem; }
+    .product-grid { grid-template-columns: 1fr 1fr; }
+    .sale-row { flex-wrap: wrap; gap: 10px; }
+    .sale-amount { margin-left: auto; }
+    .stat-value { font-size: 1.6rem; }
+    .vg-search { max-width: 100%; }
+}
+
 /* ─── THEME VARIABLES ─────────────────────────────────────── */
 :root {
     --bg-main:    #f6f1eb;
@@ -947,4 +1073,77 @@ body.dark-mode .s-section-title { color: #e87a2f; }
 
     transform:translateY(0);
 
+}
+/* ─── CRITICAL OVERFLOW FIX ──────────────────────────────────
+   Prevents any child from expanding body wider than viewport,
+   which was breaking the sidebar transform on mobile.          */
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw;
+}
+.layout {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+.main {
+    overflow-x: hidden;
+    min-width: 0;
+}
+/* Ensure sidebar drawer sits above everything on mobile */
+@media (max-width: 900px) {
+    .sidebar {
+        transform: translateX(-260px) !important;
+    }
+    .sidebar.mobile-open {
+        transform: translateX(0) !important;
+    }
+    /* Kill the width:0 trick on mobile — main must fill full viewport */
+    .main {
+        width: 100% !important;
+        flex: 1 !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FLOATING HAMBURGER BUTTON
+   Always position:fixed top-left. Hidden on desktop.
+   This is the ONLY way to open the sidebar on mobile.
+   ═══════════════════════════════════════════════════════════ */
+.fab-menu-btn {
+    display: none; /* hidden on desktop */
+}
+
+@media (max-width: 900px) {
+    /* Show the floating button */
+    .fab-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        width: 44px;
+        height: 44px;
+        background: #1a0a00;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        z-index: 9999; /* always on top of everything */
+        box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+        transition: background 0.2s;
+    }
+    .fab-menu-btn:hover,
+    .fab-menu-btn:active { background: #e87a2f; }
+
+    /* Push page content down so it clears the FAB area */
+    .main {
+        padding-top: 72px !important;
+    }
+
+    /* Hide the toggle button inside the sidebar on mobile —
+       the FAB outside handles open; the X inside handles close */
+    #sidebarToggle {
+        display: flex; /* keep as X / close on mobile */
+    }
 }

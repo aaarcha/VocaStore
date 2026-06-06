@@ -456,3 +456,14 @@
     .mic-btn { width: 90px; height: 90px; }
     .command-center-card { padding: 24px 16px 20px; }
 }
+/* ─── DASHBOARD MOBILE OVERFLOW FIX ──────────────────────── */
+@media (max-width: 900px) {
+    .dashboard-page  { overflow-x: hidden; max-width: 100%; }
+    .dash-layout     { grid-template-columns: 1fr !important; overflow-x: hidden; }
+    .dash-right      { position: static !important; width: 100%; }
+    .dash-left       { min-width: 0; overflow-x: hidden; }
+    .command-center-card { overflow-x: hidden; }
+    .hint-chips      { flex-wrap: wrap; gap: 8px; }
+    .dash-stats-row  { grid-template-columns: 1fr !important; }
+    .low-stock-list  { max-width: 100%; }
+}

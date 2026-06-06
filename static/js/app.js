@@ -20,9 +20,57 @@ function matchesAny(text, keywords) {
     return keywords.some(kw => t.includes(kw.toLowerCase()));
 }
 
+// ─── MOBILE SIDEBAR DRAWER ────────────────────────────────────────────────────
+function _el(id) { return document.getElementById(id); }
+
+function openMobileSidebar() {
+    const sidebar = _el("sidebar");
+    const overlay = _el("sidebarOverlay");
+    if (!sidebar || !overlay) return;
+    // Force style directly in addition to class — more reliable than CSS alone
+    sidebar.style.transform = "translateX(0)";
+    sidebar.style.visibility = "visible";
+    sidebar.classList.add("mobile-open");
+    overlay.classList.add("active");
+    overlay.style.display = "block";
+    document.body.style.overflow = "hidden";
+}
+
+function closeMobileSidebar() {
+    const sidebar = _el("sidebar");
+    const overlay = _el("sidebarOverlay");
+    if (!sidebar || !overlay) return;
+    sidebar.style.transform = "";
+    sidebar.style.visibility = "";
+    sidebar.classList.remove("mobile-open");
+    overlay.classList.remove("active");
+    overlay.style.display = "";
+    document.body.style.overflow = "";
+}
+
+// Close drawer on Escape key
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") closeMobileSidebar();
+});
+
+// Close drawer if screen grows back to desktop — guarded so it never runs before DOM ready
+window.addEventListener("resize", function() {
+    if (window.innerWidth > 900) closeMobileSidebar();
+});
+
 // ─── SIDEBAR TOGGLE ───────────────────────────────────────────────────────────
 function toggleSidebar() {
-    const sidebar = document.getElementById("sidebar");
+    // On mobile, use the drawer instead of the desktop collapse
+    if (window.innerWidth <= 900) {
+        const sidebar = _el("sidebar");
+        if (sidebar && sidebar.classList.contains("mobile-open")) {
+            closeMobileSidebar();
+        } else {
+            openMobileSidebar();
+        }
+        return;
+    }
+    const sidebar   = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("sidebarToggle");
     sidebarOpen = !sidebarOpen;
     if (sidebarOpen) {

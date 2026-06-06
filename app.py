@@ -31,6 +31,18 @@ def require_login():
 
 CORS(app)
 
+import psycopg2
+
+@app.errorhandler(psycopg2.OperationalError)
+def handle_db_timeout(e):
+    """Return a clean JSON error when the DB is unreachable instead of crashing."""
+    return jsonify({
+        "success": False,
+        "message": "Database connection failed. Check your .env credentials or VPN/network.",
+        "error": str(e)
+    }), 503
+
+
 # ── Global error handler ──────────────────────────────────────────────────────
 @app.errorhandler(Exception)
 def handle_error(e):

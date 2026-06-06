@@ -106,3 +106,9 @@
     padding: 48px 0;
     font-size: 0.95rem;
 }
+/* ─── SALES MOBILE FIX ───────────────────────────────────── */
+@media (max-width: 900px) {
+    .sales-page  { overflow-x: hidden; max-width: 100%; }
+    .sale-row    { flex-wrap: wrap; }
+    .sale-amount { margin-left: auto; }
+}

@@ -223,3 +223,12 @@
 .hidden { 
     display: none; 
 }
+/* ─── INVENTORY MOBILE FIX ──────────────────────────────── */
+@media (max-width: 900px) {
+    .inventory-page  { overflow-x: hidden; max-width: 100%; }
+    .product-grid    { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .inventory-actions { flex-direction: column; gap: 8px; }
+    .inventory-search input { width: 100%; box-sizing: border-box; }
+    .product-form-card { width: 95vw; max-width: 95vw; padding: 16px; }
+    .product-form-grid { grid-template-columns: 1fr; }
+}

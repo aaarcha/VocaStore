@@ -218,3 +218,9 @@
     .summary-bottom-grid { grid-template-columns: 1fr; }
     .stat-value { font-size: 1.6rem; }
 }
+/* ─── SUMMARY MOBILE FIX ─────────────────────────────────── */
+@media (max-width: 900px) {
+    .summary-page        { overflow-x: hidden; max-width: 100%; }
+    .summary-stats-grid  { grid-template-columns: 1fr !important; }
+    .summary-bottom-grid { grid-template-columns: 1fr !important; }
+}
