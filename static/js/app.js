@@ -47,6 +47,11 @@ function closeMobileSidebar() {
     overlay.style.display = "";
     document.body.style.overflow = "";
 }
+// navTo — navigate + close drawer in one call (used by sidebar buttons)
+function navTo(page) {
+    closeMobileSidebar();
+    showPage(page);
+}
 
 // Close drawer on Escape key
 document.addEventListener("keydown", function(e) {
@@ -60,24 +65,27 @@ window.addEventListener("resize", function() {
 
 // ─── SIDEBAR TOGGLE ───────────────────────────────────────────────────────────
 function toggleSidebar() {
-    // On mobile, use the drawer instead of the desktop collapse
+    // On mobile: the toggle button inside sidebar acts as CLOSE (X)
     if (window.innerWidth <= 900) {
-        const sidebar = _el("sidebar");
-        if (sidebar && sidebar.classList.contains("mobile-open")) {
-            closeMobileSidebar();
-        } else {
-            openMobileSidebar();
-        }
+        closeMobileSidebar();
         return;
     }
     const sidebar   = document.getElementById("sidebar");
+    const main      = document.getElementById("mainContent");
     const toggleBtn = document.getElementById("sidebarToggle");
+
+    // Block tooltips for the duration of the CSS transition (280ms)
+    sidebar.classList.add("sidebar-animating");
+    setTimeout(() => sidebar.classList.remove("sidebar-animating"), 320);
+
     sidebarOpen = !sidebarOpen;
     if (sidebarOpen) {
         sidebar.classList.remove("sidebar-collapsed");
+        if (main) main.style.marginLeft = "230px";
         if (toggleBtn) toggleBtn.innerHTML = sidebarChevronLeft();
     } else {
         sidebar.classList.add("sidebar-collapsed");
+        if (main) main.style.marginLeft = "62px";
         if (toggleBtn) toggleBtn.innerHTML = sidebarChevronRight();
     }
 }

@@ -23,10 +23,11 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
     height: 100vh;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 4px 0 24px rgba(0,0,0,0.18);
     transition: width 0.28s cubic-bezier(.4,0,.2,1), min-width 0.28s cubic-bezier(.4,0,.2,1);
     z-index: 100;
@@ -35,6 +36,11 @@ html, body {
 .sidebar.sidebar-collapsed {
     width: 62px;
     min-width: 62px;
+}
+
+.sidebar-collapsed ~ .layout .main,
+body.sidebar-collapsed .main {
+    margin-left: 62px;
 }
 
 .sidebar-collapsed .nav-label,
@@ -87,7 +93,7 @@ html, body {
     flex-direction: column;
     gap: 4px;
     flex: 1;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .sidebar-nav button {
@@ -161,11 +167,13 @@ html, body {
 /* ─── MAIN ────────────────────────────────────────────────── */
 .main {
     flex: 1;
-    width: 0; /* prevents overflow */
+    margin-left: 230px; /* match sidebar width */
     padding: 32px 36px;
     overflow-x: hidden;
     overflow-y: auto;
     background: #f6f1eb;
+    min-height: 100vh;
+    transition: margin-left 0.28s cubic-bezier(.4,0,.2,1);
 }
 
 /* ─── HERO ────────────────────────────────────────────────── */
@@ -597,12 +605,12 @@ td button:hover {
         padding-top: 14px !important;
     }
 
-    /* Main content fills full width */
+    /* Main content fills full width — no sidebar margin on mobile */
     .main {
         width: 100% !important;
+        margin-left: 0 !important;
         padding: 20px 16px 32px !important;
-        min-height: calc(100vh - 58px);
-        min-height: calc(100dvh - 58px);
+        min-height: 100vh;
     }
 
     /* show/hide helpers */
@@ -1102,6 +1110,150 @@ html, body {
         width: 100% !important;
         flex: 1 !important;
     }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FLOATING HAMBURGER BUTTON
+   Always position:fixed top-left. Hidden on desktop.
+   This is the ONLY way to open the sidebar on mobile.
+   ═══════════════════════════════════════════════════════════ */
+.fab-menu-btn {
+    display: none; /* hidden on desktop */
+}
+
+@media (max-width: 900px) {
+    /* Show the floating button */
+    .fab-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        width: 44px;
+        height: 44px;
+        background: #1a0a00;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        z-index: 9999; /* always on top of everything */
+        box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+        transition: background 0.2s;
+    }
+    .fab-menu-btn:hover,
+    .fab-menu-btn:active { background: #e87a2f; }
+
+    /* Push page content down so it clears the FAB area */
+    .main {
+        padding-top: 72px !important;
+    }
+
+    /* Hide the toggle button inside the sidebar on mobile —
+       the FAB outside handles open; the X inside handles close */
+    #sidebarToggle {
+        display: flex; /* keep as X / close on mobile */
+    }
+}
+
+
+/* ── Disable tooltips while sidebar is animating ─────────────
+   JS adds .sidebar-animating during the transition, removes it after.
+   This prevents all tooltips from flashing as icons slide past cursor. */
+.sidebar.sidebar-animating .sidebar-nav button .nav-label {
+    display: none !important;
+}
+/* ═══════════════════════════════════════════════════════════
+   COLLAPSED SIDEBAR TOOLTIPS
+   Show label on hover as a pill tooltip to the right of icon
+   ═══════════════════════════════════════════════════════════ */
+
+/* Each nav button needs relative positioning for the tooltip */
+.sidebar-nav button {
+    position: relative;
+    overflow: visible !important; /* allow tooltip to escape button bounds */
+}
+
+/* When collapsed, hide the label text normally (takes up no space) */
+.sidebar-collapsed .sidebar-nav button .nav-label {
+    /* Positioned tooltip pill — invisible until hover */
+    display: block !important;
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e87a2f;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 4px 14px rgba(232,122,47,0.35);
+    /* ALWAYS hidden — only revealed on hover below */
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: opacity 0.15s ease, visibility 0.15s ease;
+    z-index: 9999;
+}
+
+/* Left-pointing arrow */
+.sidebar-collapsed .sidebar-nav button .nav-label::before {
+    content: "";
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 5px solid transparent;
+    border-right-color: #e87a2f;
+}
+
+/* ONLY show on hover — using !important to beat any active/focus state */
+.sidebar-collapsed .sidebar-nav button:hover .nav-label {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Keep the active button icon highlighted in orange */
+.sidebar-collapsed .sidebar-nav button.active {
+    background: #e87a2f;
+    border-radius: 12px;
+}
+
+/* Center icon when collapsed */
+.sidebar-collapsed .sidebar-nav button {
+    justify-content: center;
+    padding: 13px !important;
+}
+
+/* Also show the logo tooltip on hover when collapsed */
+.sidebar-collapsed .sidebar-logo {
+    position: relative;
+    cursor: default;
+}
+.sidebar-collapsed .sidebar-logo-text {
+    display: block !important;
+    position: absolute;
+    left: calc(100% + 20px);
+    top: 50%;
+    transform: translateY(-50%) scale(0.85);
+    background: #e87a2f;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 800;
+    padding: 6px 13px;
+    border-radius: 9px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 4px 16px rgba(232,122,47,0.4);
+    opacity: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    z-index: 500;
+}
+.sidebar-collapsed .sidebar-logo:hover .sidebar-logo-text {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
 }
 
 /* ═══════════════════════════════════════════════════════════
